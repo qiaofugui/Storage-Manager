@@ -10,6 +10,10 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
+          src: 'locales/*',
+          dest: ''
+        },
+        {
           src: 'manifest.json',
           dest: ''
         },

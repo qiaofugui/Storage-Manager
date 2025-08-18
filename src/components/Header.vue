@@ -15,12 +15,12 @@
 
       <!-- 操作按钮 -->
       <div class="flex-shrink-0">
-        <ActionButtons 
-          @add="$emit('add')" 
-          @edit-all="$emit('edit-all')" 
+        <ActionButtons
+          @add="$emit('add')"
+          @edit-all="$emit('edit-all')"
           @paste="$emit('paste')"
-          @clear="$emit('clear')" 
-          @refresh="$emit('refresh')" 
+          @clear="$emit('clear')"
+          @refresh="$emit('refresh')"
         />
       </div>
     </div>

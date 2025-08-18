@@ -1,7 +1,9 @@
 import { useMessageManager } from './useMessageManager.js'
-import { setBatchStorage, hasStorageItem } from '../utils/storage.js'
+import { StorageManager } from '../utils/storage.js'
 import { safeJsonParse } from '../utils/performance.js'
 import { MESSAGE_CONFIG } from '../constants/index.js'
+
+const { setBatch, hasItem } = StorageManager
 
 export function useClipboard (activeTab, refreshData) {
   const { message } = useMessageManager()
@@ -60,7 +62,7 @@ export function useClipboard (activeTab, refreshData) {
       const keys = Object.keys(jsonData)
 
       for (const key of keys) {
-        const exists = await hasStorageItem(activeTab.value, key)
+        const exists = await hasItem(activeTab.value, key)
         if (exists) {
           duplicateKeys.push(key)
         }
@@ -80,7 +82,7 @@ export function useClipboard (activeTab, refreshData) {
       }
 
       // 没有重复项，执行粘贴
-      const result = await setBatchStorage(activeTab.value, jsonData, false)
+      const result = await setBatch(activeTab.value, jsonData, false)
       await refreshData()
 
       if (result.success === result.total) {

@@ -1,15 +1,10 @@
 import { ref, computed } from 'vue'
 import { useMessageManager } from './useMessageManager.js'
-import {
-  getCurrentStorage,
-  setStorageItem,
-  removeStorageItem,
-  clearStorage,
-  setBatchStorage,
-  hasStorageItem
-} from '../utils/storage.js'
+import { StorageManager } from '../utils/storage.js'
 import { debounce } from '../utils/performance.js'
-import { DEBOUNCE_DELAYS, MESSAGE_CONFIG } from '../constants/index.js'
+import { DEBOUNCE_DELAYS } from '../constants/index.js'
+
+const { getAll, setItem, removeItem, clear, setBatch, hasItem } = StorageManager
 
 export function useStorage () {
   const { message } = useMessageManager()
@@ -44,7 +39,7 @@ export function useStorage () {
   const refreshData = async (showMessage = false) => {
     loading.value = true
     try {
-      const storageData = await getCurrentStorage(activeTab.value)
+      const storageData = await getAll(activeTab.value)
       data.value = storageData
       if (showMessage) {
         message.success('数据已刷新')
@@ -63,7 +58,7 @@ export function useStorage () {
   // 删除项目
   const deleteItem = async (key) => {
     try {
-      await removeStorageItem(activeTab.value, key)
+      await removeItem(activeTab.value, key)
       await refreshData()
       message.success('删除成功')
     } catch (error) {
@@ -75,7 +70,7 @@ export function useStorage () {
   // 清除所有数据
   const clearAll = async () => {
     try {
-      await clearStorage(activeTab.value)
+      await clear(activeTab.value)
       await refreshData()
       message.success('清除成功')
     } catch (error) {
@@ -94,14 +89,14 @@ export function useStorage () {
     try {
       // 如果是新增模式，检查键名是否重复
       if (!isEditing) {
-        const exists = await hasStorageItem(activeTab.value, key)
+        const exists = await hasItem(activeTab.value, key)
         if (exists) {
           message.error(`键名 "${key}" 已存在，请使用编辑功能修改现有数据项或更换键名`)
           return false
         }
       }
 
-      await setStorageItem(activeTab.value, key, value)
+      await setItem(activeTab.value, key, value)
       await refreshData()
       message.success(isEditing ? '修改成功' : '添加成功')
       return true
@@ -115,7 +110,7 @@ export function useStorage () {
   // 批量保存数据
   const saveAllData = async (jsonData) => {
     try {
-      const result = await setBatchStorage(activeTab.value, jsonData, true)
+      const result = await setBatch(activeTab.value, jsonData, true)
       await refreshData()
 
       if (result.success === result.total) {

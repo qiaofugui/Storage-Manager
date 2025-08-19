@@ -21,10 +21,11 @@ export function useStorage () {
 
     if (searchQuery.value.trim()) {
       const query = searchQuery.value.toLowerCase().trim()
-      filtered = filtered.filter(item =>
-        item.key.toLowerCase().includes(query) ||
-        item.value.toLowerCase().includes(query)
-      )
+      filtered = filtered.filter(item => {
+        const keyField = activeTab.value === 'cookie' ? item.name : item.key
+        return keyField.toLowerCase().includes(query) ||
+          item.value.toLowerCase().includes(query)
+      })
     }
 
     return filtered

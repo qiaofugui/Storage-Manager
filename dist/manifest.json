@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Storage Manager",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Manage Storage data easily",
   "default_locale": "zh_CN",
   "permissions": [

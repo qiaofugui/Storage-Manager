@@ -9,7 +9,6 @@
 </template>
 
 <script setup>
-import { NConfigProvider, NMessageProvider, zhCN, dateZhCN } from 'naive-ui'
 import StorageManager from './components/StorageManager.vue'
 
 const theme_overrides = {

@@ -60,6 +60,57 @@ function createUrl (urlString) {
   }
 }
 
+function normalizeCookieDomain (domain) {
+  return typeof domain === 'string' ? domain.trim() : ''
+}
+
+function getCookieHost (domain, fallbackHost) {
+  const normalizedDomain = normalizeCookieDomain(domain)
+  return (normalizedDomain || fallbackHost).replace(/^\./, '')
+}
+
+function normalizeCookiePath (path) {
+  return typeof path === 'string' && path.startsWith('/') ? path : '/'
+}
+
+function createCookieUrl (cookie, currentUrl) {
+  const pageUrl = createUrl(currentUrl)
+  const protocol = cookie.secure ? 'https:' : pageUrl.protocol
+  const host = getCookieHost(cookie.domain, pageUrl.hostname)
+  const path = normalizeCookiePath(cookie.path)
+
+  return `${protocol}//${host}${path}`
+}
+
+function normalizeSameSite (sameSite) {
+  if (!sameSite) return 'lax'
+
+  const normalized = sameSite === 'none' ? 'no_restriction' : sameSite
+  const validSameSiteValues = ['strict', 'lax', 'no_restriction', 'unspecified']
+
+  return validSameSiteValues.includes(normalized) ? normalized : 'lax'
+}
+
+function getCookieInputName (key, value) {
+  if (typeof value === 'object' && value !== null && typeof value.name === 'string' && value.name.trim()) {
+    return value.name
+  }
+
+  return key
+}
+
+function createCookieEditorKey (cookie) {
+  const parts = [
+    cookie.name,
+    cookie.domain || '',
+    cookie.path || '/',
+    cookie.storeId || '',
+    cookie.partitionKey ? JSON.stringify(cookie.partitionKey) : ''
+  ]
+
+  return parts.map(part => encodeURIComponent(part)).join('|')
+}
+
 /**
  * 检查Chrome API可用性
  */
@@ -547,17 +598,19 @@ async function getCurrentCookies () {
     })
 
     const result = cookies.map(cookie => ({
-      key: cookie.name,
+      key: createCookieEditorKey(cookie),
       name: cookie.name,
       value: cookie.value,
       domain: cookie.domain,
       path: cookie.path,
       secure: cookie.secure,
       httpOnly: cookie.httpOnly,
+      hostOnly: cookie.hostOnly,
       sameSite: cookie.sameSite,
       expirationDate: cookie.expirationDate,
       session: !cookie.expirationDate, // 会话Cookie标识
       storeId: cookie.storeId, // 添加存储ID
+      partitionKey: cookie.partitionKey,
       type: 'cookie'
     }))
 
@@ -579,20 +632,27 @@ async function setCookieItem (name, value, options = {}) {
     const url = createUrl(tab.url)
 
     const cookieDetails = {
-      url: tab.url,
+      url: createCookieUrl(options, tab.url),
       name: name,
       value: String(value), // 确保是字符串
-      domain: options.domain || url.hostname,
-      path: options.path || '/',
+      path: normalizeCookiePath(options.path),
       secure: Boolean(options.secure),
       httpOnly: Boolean(options.httpOnly),
-      sameSite: options.sameSite || 'lax'
+      sameSite: normalizeSameSite(options.sameSite)
     }
 
-    // 更严格的sameSite值验证
-    const validSameSiteValues = ['strict', 'lax', 'none', 'unspecified']
-    if (!validSameSiteValues.includes(cookieDetails.sameSite)) {
-      cookieDetails.sameSite = 'lax'
+    if (options.storeId) {
+      cookieDetails.storeId = options.storeId
+    }
+
+    if (options.partitionKey) {
+      cookieDetails.partitionKey = options.partitionKey
+    }
+
+    const normalizedDomain = normalizeCookieDomain(options.domain)
+    const shouldSetDomain = normalizedDomain && (options.hostOnly === false || normalizedDomain.startsWith('.'))
+    if (shouldSetDomain) {
+      cookieDetails.domain = normalizedDomain
     }
 
     // 处理过期时间 - 更严格的验证
@@ -624,7 +684,7 @@ async function setCookieItem (name, value, options = {}) {
     }
 
     // sameSite为none时，必须设置secure
-    if (cookieDetails.sameSite === 'none' && !cookieDetails.secure) {
+    if (cookieDetails.sameSite === 'no_restriction' && !cookieDetails.secure) {
       throw new Error('sameSite=none 的 Cookie 必须设置 secure=true')
     }
 
@@ -652,7 +712,9 @@ async function setCookieItem (name, value, options = {}) {
   }
 }
 
-async function removeCookieItem (name) {
+async function removeCookieItem (item) {
+  const cookie = typeof item === 'object' && item !== null ? item : { name: item }
+  const name = cookie.name || cookie.key
   validateKey(name)
 
   if (!chrome.cookies) {
@@ -661,16 +723,25 @@ async function removeCookieItem (name) {
 
   try {
     const tab = await getActiveTab()
+    const removeDetails = {
+      url: createCookieUrl(cookie, tab.url),
+      name: name
+    }
+
+    if (cookie.storeId) {
+      removeDetails.storeId = cookie.storeId
+    }
+
+    if (cookie.partitionKey) {
+      removeDetails.partitionKey = cookie.partitionKey
+    }
 
     const result = await new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
         reject(new Error('删除 Cookie 超时'))
       }, 5000)
 
-      chrome.cookies.remove({
-        url: tab.url,
-        name: name
-      }, (details) => {
+      chrome.cookies.remove(removeDetails, (details) => {
         clearTimeout(timeoutId)
 
         if (chrome.runtime.lastError) {
@@ -693,9 +764,6 @@ async function clearCookies () {
   }
 
   try {
-    const tab = await getActiveTab()
-    const url = createUrl(tab.url)
-
     const cookies = await getCurrentCookies()
 
     if (cookies.length === 0) {
@@ -704,7 +772,7 @@ async function clearCookies () {
 
     const removePromises = cookies.map(async cookie => {
       try {
-        await removeCookieItem(cookie.name)
+        await removeCookieItem(cookie)
         return { success: true, name: cookie.name }
       } catch (error) {
         return { success: false, name: cookie.name, error: error.message }
@@ -741,10 +809,11 @@ async function setBatchCookies (data, clearFirst = false) {
 
   // 预先验证所有Cookie数据
   entries.forEach(([key, value]) => {
+    const cookieName = getCookieInputName(key, value)
     if (typeof value === 'object' && value !== null) {
-      validateCookieData(key, value.value)
+      validateCookieData(cookieName, value.value)
     } else {
-      validateCookieData(key, value)
+      validateCookieData(cookieName, value)
     }
   })
 
@@ -772,18 +841,21 @@ async function setBatchCookies (data, clearFirst = false) {
     const setPromises = entries.map(async ([key, value]) => {
       try {
         // 处理不同的value格式
+        let cookieName = key
         let cookieValue, options = {}
 
         if (typeof value === 'object' && value !== null) {
+          cookieName = getCookieInputName(key, value)
           cookieValue = value.value !== undefined ? value.value : JSON.stringify(value)
           options = { ...value }
+          delete options.name // name 单独作为 Cookie 名称处理
           delete options.value // 移除value属性，避免混淆
         } else {
           cookieValue = typeof value === 'string' ? value : JSON.stringify(value)
         }
 
-        await setCookieItem(key, cookieValue, options)
-        return { success: true, key }
+        await setCookieItem(cookieName, cookieValue, options)
+        return { success: true, key: cookieName }
       } catch (e) {
         return { success: false, key, error: e.message }
       }
@@ -913,11 +985,12 @@ export const StorageManager = {
    */
   async removeItem (type, key) {
     validateStorageType(type)
-    validateKey(key)
 
     if (type === 'cookie') {
       return await removeCookieItem(key)
     }
+
+    validateKey(key)
     return await removeStorageItem(type, key)
   },
 

@@ -106,7 +106,7 @@ npm run build
 ```
 src/
 ├── components/           # Vue组件
-│   ├── LocalStorageManager.vue  # 主管理组件
+│   ├── StorageManager.vue       # 主管理组件
 │   ├── StorageTabs.vue          # 存储类型标签页
 │   ├── ActionButtons.vue        # 操作按钮组件
 │   ├── StorageTable.vue         # 数据表格组件
@@ -131,10 +131,14 @@ src/
 ```json
 {
   "permissions": [
+    "tabs",           // 查询当前激活标签页
     "activeTab",      // 访问当前激活标签页
-    "storage",        // 扩展自身存储
+    "cookies",        // 管理当前站点 Cookie
     "scripting",      // 在页面中执行脚本
     "clipboardRead"   // 读取剪贴板内容
+  ],
+  "host_permissions": [
+    "<all_urls>"      // 支持在用户打开的不同站点读取和管理 Cookie
   ]
 }
 ```
@@ -160,4 +164,4 @@ MIT License
 - [Chrome Extension API](https://developer.chrome.com/docs/extensions/)
 - [Vue 3 文档](https://vuejs.org/)
 - [Naive UI](https://www.naiveui.com/)
-- [Tailwind CSS](https://tailwindcss.com/) 
+- [Tailwind CSS](https://tailwindcss.com/)

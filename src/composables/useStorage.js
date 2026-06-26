@@ -57,9 +57,11 @@ export function useStorage () {
   const debouncedRefresh = debounce(() => refreshData(true), DEBOUNCE_DELAYS.REFRESH)
 
   // 删除项目
-  const deleteItem = async (key) => {
+  const deleteItem = async (item) => {
     try {
-      await removeItem(activeTab.value, key)
+      const itemKey = typeof item === 'object' && item !== null ? item.key : item
+      const itemToDelete = activeTab.value === 'cookie' ? item : itemKey
+      await removeItem(activeTab.value, itemToDelete)
       await refreshData()
       message.success('删除成功')
     } catch (error) {
@@ -80,8 +82,41 @@ export function useStorage () {
     }
   }
 
+  const clearCurrentPage = async () => {
+    const storageTypes = ['localStorage', 'sessionStorage', 'cookie']
+    const results = []
+
+    loading.value = true
+    try {
+      for (const storageType of storageTypes) {
+        try {
+          const result = await clear(storageType)
+          results.push({ type: storageType, success: true, result })
+        } catch (error) {
+          results.push({ type: storageType, success: false, error })
+        }
+      }
+
+      await refreshData()
+
+      const failedResults = results.filter(item => !item.success)
+      if (failedResults.length === 0) {
+        message.success('已清除当前页面全部数据')
+        return
+      }
+
+      const failedTypes = failedResults.map(item => item.type).join('、')
+      message.warning(`部分数据清除失败: ${failedTypes}`)
+      failedResults.forEach(item => {
+        console.error(`清除 ${item.type} 失败:`, item.error)
+      })
+    } finally {
+      loading.value = false
+    }
+  }
+
   // 保存项目
-  const saveItem = async (key, value, isEditing = false) => {
+  const saveItem = async (key, value, isEditing = false, options = {}) => {
     if (!key.trim()) {
       message.error('请输入键名')
       return false
@@ -97,7 +132,7 @@ export function useStorage () {
         }
       }
 
-      await setItem(activeTab.value, key, value)
+      await setItem(activeTab.value, key, value, options)
       await refreshData()
       message.success(isEditing ? '修改成功' : '添加成功')
       return true
@@ -135,7 +170,23 @@ export function useStorage () {
       if (typeof item === 'string') {
         textToCopy = item
       } else {
-        const copyData = { [item.key]: item.value }
+        const copyKey = activeTab.value === 'cookie' ? item.name : item.key
+        const copyValue = activeTab.value === 'cookie'
+          ? {
+              name: item.name,
+              value: item.value,
+              domain: item.domain,
+              path: item.path,
+              secure: item.secure,
+              httpOnly: item.httpOnly,
+              hostOnly: item.hostOnly,
+              sameSite: item.sameSite,
+              expirationDate: item.expirationDate,
+              storeId: item.storeId,
+              partitionKey: item.partitionKey
+            }
+          : item.value
+        const copyData = { [copyKey]: copyValue }
         textToCopy = JSON.stringify(copyData, null, 2)
       }
 
@@ -143,7 +194,7 @@ export function useStorage () {
 
       const successMessage = typeof item === 'string'
         ? '已复制到剪贴板'
-        : `已复制数据项 "${item.key}" 到剪贴板`
+        : `已复制数据项 "${activeTab.value === 'cookie' ? item.name : item.key}" 到剪贴板`
 
       message.success(successMessage)
     } catch (error) {
@@ -172,6 +223,7 @@ export function useStorage () {
     debouncedRefresh,
     deleteItem,
     clearAll,
+    clearCurrentPage,
     saveItem,
     saveAllData,
     copyToClipboard,

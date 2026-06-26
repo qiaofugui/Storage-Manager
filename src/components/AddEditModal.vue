@@ -59,7 +59,6 @@
 
 <script setup>
 import { computed, ref, watch, nextTick, Suspense, defineAsyncComponent } from 'vue'
-import { NSpin } from 'naive-ui'
 import { useJsonEditor } from '../composables/useJsonEditor.js'
 import { useIcons } from '../composables/useIcons.js'
 import { safeJsonParse } from '../utils/performance.js'

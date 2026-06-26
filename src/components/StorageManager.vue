@@ -1,7 +1,7 @@
 <template>
   <div class="h-full flex flex-col">
     <Header @add="showAddModal = true" @edit-all="showEditAllModal = true" @paste="pasteData" @clear="clearAll"
-      @refresh="debouncedRefresh" />
+      @clear-current-page="clearCurrentPage" @refresh="debouncedRefresh" />
 
     <!-- 标签页 -->
     <div class="bg-white px-2 py-1.5">
@@ -36,14 +36,13 @@
       @close="closeModal" />
 
     <!-- 批量编辑模态框 -->
-    <EditAllModal v-model:show="showEditAllModal" :data="filteredData" :storage-type="activeTab" @save="saveAllData"
+    <EditAllModal v-model:show="showEditAllModal" :data="currentTabData" :storage-type="activeTab" @save="saveAllData"
       @close="showEditAllModal = false" />
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { NInput, NIcon } from 'naive-ui'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useStorage } from '../composables/useStorage.js'
 import { useClipboard } from '../composables/useClipboard.js'
 import { useIcons } from '../composables/useIcons.js'
@@ -67,6 +66,7 @@ const {
   debouncedRefresh,
   deleteItem,
   clearAll,
+  clearCurrentPage,
   saveItem: storageServiceSaveItem,
   saveAllData,
   copyToClipboard,
@@ -88,10 +88,14 @@ const formData = reactive({
   value: ''
 })
 
+const currentTabData = computed(() => {
+  return data.value.filter(item => item.type === activeTab.value)
+})
+
 // 编辑项目
 const editItem = (item) => {
   editingItem.value = item
-  formData.key = item.key
+  formData.key = activeTab.value === 'cookie' ? item.name : item.key
   formData.value = item.value
   showAddModal.value = true
 }
@@ -99,7 +103,20 @@ const editItem = (item) => {
 // 保存项目 - 与存储服务交互
 const saveItem = async () => {
   const isEditing = !!editingItem.value
-  const success = await storageServiceSaveItem(formData.key, formData.value, isEditing)
+  const options = activeTab.value === 'cookie' && editingItem.value
+    ? {
+        domain: editingItem.value.domain,
+        path: editingItem.value.path,
+        secure: editingItem.value.secure,
+        httpOnly: editingItem.value.httpOnly,
+        hostOnly: editingItem.value.hostOnly,
+        sameSite: editingItem.value.sameSite,
+        expirationDate: editingItem.value.expirationDate,
+        storeId: editingItem.value.storeId,
+        partitionKey: editingItem.value.partitionKey
+      }
+    : {}
+  const success = await storageServiceSaveItem(formData.key, formData.value, isEditing, options)
 
   if (success) {
     closeModal()

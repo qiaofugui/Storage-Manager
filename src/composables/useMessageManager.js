@@ -1,4 +1,3 @@
-import { useMessage } from 'naive-ui'
 import { MESSAGE_CONFIG } from '../constants/index.js'
 
 export function useMessageManager () {

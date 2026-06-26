@@ -75,7 +75,6 @@
 
 <script setup>
 import { computed, watch, ref, Suspense, defineAsyncComponent } from 'vue'
-import { NSpin } from 'naive-ui'
 import { useJsonEditor } from '../composables/useJsonEditor.js'
 import { useIcons } from '../composables/useIcons.js'
 import { deepClone } from '../utils/performance.js'
@@ -140,6 +139,23 @@ const loadCurrentData = async (showMessage = false) => {
     if (props.data.length > 0) {
       const dataObj = {}
       props.data.forEach(item => {
+        if (props.storageType === 'cookie') {
+          dataObj[item.key] = {
+            name: item.name,
+            value: item.value,
+            domain: item.domain,
+            path: item.path,
+            secure: item.secure,
+            httpOnly: item.httpOnly,
+            hostOnly: item.hostOnly,
+            sameSite: item.sameSite,
+            expirationDate: item.expirationDate,
+            storeId: item.storeId,
+            partitionKey: item.partitionKey
+          }
+          return
+        }
+
         // 使用 parseValue 来解析值
         dataObj[item.key] = parseValue(item.value)
       })

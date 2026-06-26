@@ -5,7 +5,6 @@
 
 <script setup>
 import { h, computed, ref, watch } from 'vue'
-import { NButton, NIcon, NPopconfirm, NTooltip } from 'naive-ui'
 import { PAGINATION_CONFIG, TOOLTIP_CONFIG } from '../constants/index.js'
 import { useIcons } from '../composables/useIcons.js'
 
@@ -77,6 +76,7 @@ const columns = computed(() => [
     ellipsis: {
       tooltip: true
     },
+    render: (row) => row.name || row.key
   },
   {
     title: '值',
@@ -128,7 +128,7 @@ const columns = computed(() => [
           default: () => '复制数据项'
         }),
         h(NPopconfirm, {
-          onPositiveClick: () => emit('delete', row.key),
+          onPositiveClick: () => emit('delete', row),
           positiveText: '删除',
           negativeText: '取消'
         }, {
@@ -145,7 +145,7 @@ const columns = computed(() => [
             }),
             default: () => '删除数据项'
           }),
-          default: () => `确定要删除数据项 "${row.key}" 吗？`
+          default: () => `确定要删除数据项 "${row.name || row.key}" 吗？`
         })
       ])
     }

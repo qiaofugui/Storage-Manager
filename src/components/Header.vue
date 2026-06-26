@@ -4,7 +4,7 @@
       <!-- Logo -->
       <div class="flex items-center space-x-3">
         <div class="flex-shrink-0">
-          <img src="/icons/icon-128.png" alt="Storage Manager Logo" class="w-8 h-8" @error="handleImageError" />
+          <img :src="logoSrc" alt="Storage Manager Logo" class="w-8 h-8" @error="handleImageError" />
         </div>
 
         <!-- 标题和描述 -->
@@ -20,6 +20,7 @@
           @edit-all="$emit('edit-all')"
           @paste="$emit('paste')"
           @clear="$emit('clear')"
+          @clear-current-page="$emit('clear-current-page')"
           @refresh="$emit('refresh')"
         />
       </div>
@@ -30,8 +31,10 @@
 <script setup>
 import ActionButtons from './ActionButtons.vue'
 
+const logoSrc = ref('/icons/icon-128.png')
+
 // 定义事件
-defineEmits(['add', 'edit-all', 'paste', 'clear', 'refresh'])
+defineEmits(['add', 'edit-all', 'paste', 'clear', 'clear-current-page', 'refresh'])
 
 // 处理图片加载错误
 const handleImageError = (event) => {

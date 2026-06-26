@@ -7,7 +7,6 @@
   "permissions": [
     "tabs",
     "activeTab",
-    "storage",
     "cookies",
     "scripting",
     "clipboardRead"

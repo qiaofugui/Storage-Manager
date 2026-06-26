@@ -2,10 +2,35 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { viteCommonjs } from '@originjs/vite-plugin-commonjs'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
+import AutoImport from 'unplugin-auto-import/vite'
+import Components from 'unplugin-vue-components/vite'
+import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 
 export default defineConfig({
   plugins: [
     vue(),
+    AutoImport({
+      imports: [
+        'vue',
+        {
+          'naive-ui': [
+            'dateZhCN',
+            'NButton',
+            'NIcon',
+            'NPopconfirm',
+            'NSpin',
+            'NTooltip',
+            'useMessage',
+            'zhCN'
+          ]
+        }
+      ],
+      dts: false
+    }),
+    Components({
+      resolvers: [NaiveUiResolver()],
+      dts: false
+    }),
     viteCommonjs(),
     viteStaticCopy({
       targets: [
@@ -33,7 +58,6 @@ export default defineConfig({
       },
       output: {
         manualChunks: {
-          'naive-ui': ['naive-ui'],
           'json-editor': ['json-editor-vue3'],
           'vue-vendor': ['vue']
         }
@@ -43,6 +67,6 @@ export default defineConfig({
     minify: 'esbuild'
   },
   optimizeDeps: {
-    include: ['naive-ui', 'json-editor-vue3', 'vue']
+    include: ['json-editor-vue3', 'vue']
   }
 })

@@ -52,7 +52,7 @@
       刷新数据
     </n-tooltip>
 
-    <n-dropdown trigger="hover" :options="dropdownOptions" @select="handleDropdownSelect">
+    <n-dropdown trigger="click" :options="dropdownOptions">
       <n-button size="small">
         <template #icon>
           <n-icon>
@@ -69,7 +69,7 @@ import { h } from 'vue'
 import { useIcons } from '../composables/useIcons.js'
 import { TOOLTIP_CONFIG } from '../constants/index.js'
 
-const emit = defineEmits(['add', 'edit-all', 'paste', 'clear', 'refresh'])
+const emit = defineEmits(['add', 'edit-all', 'paste', 'clear', 'clear-current-page', 'refresh'])
 
 // 使用统一的图标系统
 const {
@@ -81,19 +81,50 @@ const {
   MoreIcon
 } = useIcons()
 
-// 下拉菜单选项
-const dropdownOptions = [
+const clearActions = [
   {
-    label: '清除所有数据',
-    key: 'clear',
-    icon: () => h(TrashIcon),
+    label: '清除当前类型数据',
+    eventName: 'clear',
+    positiveText: '清除',
+    confirmText: '确定要清除当前类型的所有数据吗？此操作不可撤销。'
+  },
+  {
+    label: '清除页面全部数据',
+    eventName: 'clear-current-page',
+    positiveText: '全部清除',
+    confirmText: '确定要清除页面的 localStorage、sessionStorage 和 Cookie 吗？此操作不可撤销。'
   }
 ]
 
-// 处理下拉菜单选择
-const handleDropdownSelect = (key) => {
-  if (key === 'clear') {
-    emit('clear')
-  }
+const dropdownOptions = clearActions.map(action => ({
+  type: 'render',
+  key: action.eventName,
+  render: () => renderClearAction(action)
+}))
+
+const handleClearConfirm = (eventName) => {
+  emit(eventName)
+}
+
+const renderClearAction = (action) => {
+  return h(NPopconfirm, {
+    positiveText: action.positiveText,
+    negativeText: '取消',
+    width: 380,
+    onPositiveClick: () => handleClearConfirm(action.eventName)
+  }, {
+    trigger: () => h('button', {
+      type: 'button',
+      class: 'flex h-[34px] w-full cursor-pointer items-center border-0 bg-transparent px-3 text-left text-sm text-[#333639] hover:bg-[#f3f3f5]',
+      onClick: (event) => event.stopPropagation(),
+      onMousedown: (event) => event.stopPropagation()
+    }, [
+      h('span', {
+        class: 'mr-2 inline-flex'
+      }, [h(TrashIcon)]),
+      action.label
+    ]),
+    default: () => action.confirmText
+  })
 }
 </script>

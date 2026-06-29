@@ -1,7 +1,23 @@
 <template>
   <n-modal v-model:show="visible" :mask-closable="false">
     <n-card :style="{ width: '95%', maxWidth: UI_CONFIG.MODAL_MAX_WIDTH, maxHeight: UI_CONFIG.MODAL_MAX_HEIGHT }"
-      :title="editingItem ? '编辑数据项' : '新增数据项'" :bordered="false" size="medium" role="dialog" aria-modal="true">
+      content-class="!pb-0" :bordered="false" size="medium" role="dialog" aria-modal="true">
+      <template #header>
+        <div class="flex min-w-0 items-center gap-3">
+          <span class="shrink-0 text-base font-medium">{{ editingItem ? '编辑数据项' : '新增数据项' }}</span>
+          <div class="pl-4 flex items-center">
+            <div class="text-sm">键：</div>
+            <n-input
+              v-model:value="formData.key"
+              class="min-w-0 flex-1"
+              placeholder="请输入键名"
+              size="small"
+              :disabled="!!editingItem"
+            />
+          </div>
+        </div>
+      </template>
+
       <template #header-extra>
         <n-tooltip trigger="hover" :delay="TOOLTIP_CONFIG.DELAY">
           <template #trigger>
@@ -18,25 +34,19 @@
       </template>
 
       <n-form :model="formData" label-placement="top">
-        <n-form-item label="键" path="key">
-          <n-input v-model:value="formData.key" placeholder="请输入键名" :disabled="!!editingItem" />
-        </n-form-item>
-        <n-form-item label="值" path="value">
-          <div class="value-editor-container">
-            <div class="json-editor-container"
-              :style="{ height: UI_CONFIG.EDITOR_HEIGHT, border: '1px solid #e0e0e6' }">
-              <Suspense>
-                <template #default>
-                  <JsonEditorVue3 :key="editorKey" v-model="parsedValue" :options="editorOptions"
-                    style="height: 100%;" />
-                </template>
-                <template #fallback>
-                  <div class="flex items-center justify-center h-full">
-                    <n-spin size="medium" />
-                  </div>
-                </template>
-              </Suspense>
-            </div>
+        <n-form-item label="值" :show-label="false" path="value">
+          <div class="w-full" :style="{ height: UI_CONFIG.EDITOR_HEIGHT, border: '1px solid #e0e0e6' }">
+            <Suspense>
+              <template #default>
+                <JsonEditorVue3 :key="editorKey" v-model="parsedValue" :options="editorOptions"
+                  style="height: 100%;" />
+              </template>
+              <template #fallback>
+                <div class="flex items-center justify-center h-full">
+                  <n-spin size="medium" />
+                </div>
+              </template>
+            </Suspense>
           </div>
         </n-form-item>
       </n-form>
@@ -289,13 +299,3 @@ const handleSave = async () => {
   }
 }
 </script>
-
-<style scoped>
-.value-editor-container {
-  width: 100%;
-}
-
-.json-editor-container {
-  overflow: hidden;
-}
-</style>

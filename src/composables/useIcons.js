@@ -12,6 +12,19 @@ const createSvgIcon = (path, viewBox = '0 0 24 24', size = '16', color = 'curren
   ])
 }
 
+const createOutlineIcon = (children, viewBox = '0 0 24 24', size = '16', color = 'currentColor') => {
+  return () => h('svg', {
+    viewBox,
+    width: size,
+    height: size,
+    fill: 'none',
+    stroke: color,
+    'stroke-width': '1.9',
+    'stroke-linecap': 'round',
+    'stroke-linejoin': 'round'
+  }, children)
+}
+
 export function useIcons () {
   // 基础图标
   const CloseIcon = createSvgIcon(
@@ -38,9 +51,10 @@ export function useIcons () {
     '#D13050'
   )
 
-  const CopyIcon = createSvgIcon(
-    'M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z'
-  )
+  const CopyIcon = createOutlineIcon([
+    h('rect', { x: '8', y: '8', width: '11', height: '11', rx: '2.5' }),
+    h('path', { d: 'M5 15V6.5A1.5 1.5 0 0 1 6.5 5H15' })
+  ])
 
   const PlusIcon = createSvgIcon(
     'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z'

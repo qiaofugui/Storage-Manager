@@ -4,25 +4,28 @@
       @clear-current-page="clearCurrentPage" @refresh="debouncedRefresh" />
 
     <!-- 标签页 -->
-    <div class="bg-white px-2 py-1.5">
-      <div class="flex justify-between items-center pb-1.5 border-b border-gray-200">
+    <div class="bg-white px-2 pt-2">
+      <div class="flex justify-between items-center">
         <!-- 标签页 -->
-        <StorageTabs :active-tab="activeTab" @tab-change="handleTabChange" />
+        <div class="flex-grow-[7]">
+          <StorageTabs :active-tab="activeTab" :counts="storageCounts" @tab-change="handleTabChange" />
+        </div>
+
+        <!-- 搜索框 -->
+        <div class="pl-4 pb-2 flex-grow-[3]">
+          <n-input :value="searchQuery" @update:value="debouncedSearch" placeholder="搜索键名或值..." clearable class="w-full">
+            <template #prefix>
+              <n-icon>
+                <SearchIcon />
+              </n-icon>
+            </template>
+          </n-input>
+        </div>
       </div>
     </div>
 
     <!-- 数据表格 -->
-    <div class="flex-1 p-2 bg-white overflow-hidden flex flex-col">
-      <!-- 搜索框 -->
-      <div class="mb-3">
-        <n-input :value="searchQuery" @update:value="debouncedSearch" placeholder="搜索键名或值..." clearable class="w-full">
-          <template #prefix>
-            <n-icon>
-              <SearchIcon />
-            </n-icon>
-          </template>
-        </n-input>
-      </div>
+    <div class="flex-1 pb-2 px-2 bg-white overflow-hidden flex flex-col">
 
       <!-- 表格 -->
       <div class="flex-1 overflow-hidden">
@@ -61,8 +64,10 @@ const {
   data,
   loading,
   searchQuery,
+  storageCounts,
   filteredData,
   refreshData,
+  refreshCounts,
   debouncedRefresh,
   deleteItem,
   clearAll,
@@ -131,7 +136,8 @@ const closeModal = () => {
   formData.value = ''
 }
 
-onMounted(() => {
-  refreshData()
+onMounted(async () => {
+  await refreshData()
+  await refreshCounts()
 })
 </script>

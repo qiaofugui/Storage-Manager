@@ -5,6 +5,7 @@ import { debounce } from '../utils/performance.js'
 import { DEBOUNCE_DELAYS } from '../constants/index.js'
 
 const { getAll, setItem, removeItem, clear, setBatch, hasItem } = StorageManager
+const STORAGE_TYPES = ['localStorage', 'sessionStorage', 'cookie']
 
 export function useStorage () {
   const { message } = useMessageManager()
@@ -14,6 +15,11 @@ export function useStorage () {
   const data = ref([])
   const loading = ref(false)
   const searchQuery = ref('')
+  const storageCounts = ref({
+    localStorage: 0,
+    sessionStorage: 0,
+    cookie: 0
+  })
 
   // 计算属性
   const filteredData = computed(() => {
@@ -36,12 +42,38 @@ export function useStorage () {
     searchQuery.value = query
   }, DEBOUNCE_DELAYS.SEARCH)
 
+  const updateStorageCount = (type, items) => {
+    storageCounts.value = {
+      ...storageCounts.value,
+      [type]: items.length
+    }
+  }
+
+  const refreshCounts = async () => {
+    const counts = { ...storageCounts.value }
+
+    await Promise.all(STORAGE_TYPES.map(async (storageType) => {
+      try {
+        const items = await getAll(storageType)
+        counts[storageType] = items.length
+      } catch (error) {
+        console.error(`刷新 ${storageType} 数量失败:`, error)
+      }
+    }))
+
+    storageCounts.value = counts
+  }
+
   // 刷新数据 - 减少不必要的刷新成功消息
-  const refreshData = async (showMessage = false) => {
+  const refreshData = async (showMessage = false, refreshAllCounts = false) => {
     loading.value = true
     try {
       const storageData = await getAll(activeTab.value)
       data.value = storageData
+      updateStorageCount(activeTab.value, storageData)
+      if (refreshAllCounts) {
+        await refreshCounts()
+      }
       if (showMessage) {
         message.success('数据已刷新')
       }
@@ -54,7 +86,7 @@ export function useStorage () {
   }
 
   // 防抖的刷新函数
-  const debouncedRefresh = debounce(() => refreshData(true), DEBOUNCE_DELAYS.REFRESH)
+  const debouncedRefresh = debounce(() => refreshData(true, true), DEBOUNCE_DELAYS.REFRESH)
 
   // 删除项目
   const deleteItem = async (item) => {
@@ -62,7 +94,7 @@ export function useStorage () {
       const itemKey = typeof item === 'object' && item !== null ? item.key : item
       const itemToDelete = activeTab.value === 'cookie' ? item : itemKey
       await removeItem(activeTab.value, itemToDelete)
-      await refreshData()
+      await refreshData(false, true)
       message.success('删除成功')
     } catch (error) {
       console.error('删除失败:', error)
@@ -74,7 +106,7 @@ export function useStorage () {
   const clearAll = async () => {
     try {
       await clear(activeTab.value)
-      await refreshData()
+      await refreshData(false, true)
       message.success('清除成功')
     } catch (error) {
       console.error('清除失败:', error)
@@ -83,12 +115,11 @@ export function useStorage () {
   }
 
   const clearCurrentPage = async () => {
-    const storageTypes = ['localStorage', 'sessionStorage', 'cookie']
     const results = []
 
     loading.value = true
     try {
-      for (const storageType of storageTypes) {
+      for (const storageType of STORAGE_TYPES) {
         try {
           const result = await clear(storageType)
           results.push({ type: storageType, success: true, result })
@@ -97,7 +128,7 @@ export function useStorage () {
         }
       }
 
-      await refreshData()
+      await refreshData(false, true)
 
       const failedResults = results.filter(item => !item.success)
       if (failedResults.length === 0) {
@@ -133,7 +164,7 @@ export function useStorage () {
       }
 
       await setItem(activeTab.value, key, value, options)
-      await refreshData()
+      await refreshData(false, true)
       message.success(isEditing ? '修改成功' : '添加成功')
       return true
     } catch (error) {
@@ -147,7 +178,7 @@ export function useStorage () {
   const saveAllData = async (jsonData) => {
     try {
       const result = await setBatch(activeTab.value, jsonData, true)
-      await refreshData()
+      await refreshData(false, true)
 
       if (result.success === result.total) {
         message.success(`批量保存成功，共保存 ${result.success} 条数据`)
@@ -216,10 +247,12 @@ export function useStorage () {
     data,
     loading,
     searchQuery,
+    storageCounts,
     filteredData,
 
     // 方法
     refreshData,
+    refreshCounts,
     debouncedRefresh,
     deleteItem,
     clearAll,

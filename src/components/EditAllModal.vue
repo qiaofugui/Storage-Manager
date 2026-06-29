@@ -1,7 +1,23 @@
 <template>
   <n-modal v-model:show="visible" :mask-closable="false">
     <n-card :style="{ width: '95%', maxWidth: UI_CONFIG.MODAL_MAX_WIDTH, maxHeight: '560px' }"
-      :title="`批量编辑 ${storageType}`" :bordered="false" size="medium" role="dialog" aria-modal="true">
+      :bordered="false" size="medium" role="dialog" aria-modal="true">
+      <template #header>
+        <div class="flex min-w-0 items-center gap-3">
+          <span class="shrink-0 text-base font-medium">{{ `批量编辑 ${storageType}` }}</span>
+          <div class="pl-4 flex items-center">
+            <n-alert type="info" show-icon>
+              <template #icon>
+                <n-icon>
+                  <InfoIcon />
+                </n-icon>
+              </template>
+              请编辑{{ storageType }}数据。保存后将覆盖当前所有{{ storageType }}数据。
+            </n-alert>
+          </div>
+        </div>
+      </template>
+
       <template #header-extra>
         <n-tooltip trigger="hover" :delay="TOOLTIP_CONFIG.DELAY">
           <template #trigger>
@@ -17,18 +33,7 @@
         </n-tooltip>
       </template>
 
-      <div class="mb-4">
-        <n-alert type="info" show-icon>
-          <template #icon>
-            <n-icon>
-              <InfoIcon />
-            </n-icon>
-          </template>
-          请编辑{{ storageType }}数据。保存后将覆盖当前所有{{ storageType }}数据。
-        </n-alert>
-      </div>
-
-      <div class="json-editor-container" style="height: 320px; border: 1px solid #e0e0e6;">
+      <div class="w-full" :style="{ height: UI_CONFIG.EDITOR_HEIGHT, border: '1px solid #e0e0e6' }">
         <Suspense>
           <template #default>
             <JsonEditorVue3 v-model="jsonData" :options="editorOptions" style="height: 100%;" />
@@ -277,3 +282,15 @@ const validateJson = (silent = false) => {
   return validateJsonValue(jsonData.value, false, silent)
 }
 </script>
+
+<style scoped>
+:deep(.n-alert .n-alert-body) {
+  padding: 6px 6px 6px 36px;
+}
+:deep(.n-alert .n-alert__icon) {
+  margin: 4px 0 0 4px;
+}
+:deep(.n-alert .n-alert-body .n-alert-body__content) {
+  font-size: 12px;
+}
+</style>

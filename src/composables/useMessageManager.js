@@ -48,6 +48,7 @@ export function useMessageManager () {
       if (shouldShowMessage(content, 'success')) {
         return message.success(content, {
           duration: MESSAGE_CONFIG.SUCCESS_DURATION,
+          closable: MESSAGE_CONFIG.CLOSABLE,
           ...options
         })
       }
@@ -57,6 +58,7 @@ export function useMessageManager () {
       if (shouldShowMessage(content, 'error')) {
         return message.error(content, {
           duration: MESSAGE_CONFIG.ERROR_DURATION,
+          closable: MESSAGE_CONFIG.CLOSABLE,
           ...options
         })
       }
@@ -66,6 +68,7 @@ export function useMessageManager () {
       if (shouldShowMessage(content, 'warning')) {
         return message.warning(content, {
           duration: MESSAGE_CONFIG.WARNING_DURATION,
+          closable: MESSAGE_CONFIG.CLOSABLE,
           ...options
         })
       }
@@ -75,6 +78,7 @@ export function useMessageManager () {
       if (shouldShowMessage(content, 'info')) {
         return message.info(content, {
           duration: MESSAGE_CONFIG.SUCCESS_DURATION,
+          closable: MESSAGE_CONFIG.CLOSABLE,
           ...options
         })
       }
@@ -85,21 +89,25 @@ export function useMessageManager () {
   const forceShowMessage = {
     success: (content, options = {}) => message.success(content, {
       duration: MESSAGE_CONFIG.SUCCESS_DURATION,
+      closable: MESSAGE_CONFIG.CLOSABLE,
       ...options
     }),
 
     error: (content, options = {}) => message.error(content, {
       duration: MESSAGE_CONFIG.ERROR_DURATION,
+      closable: MESSAGE_CONFIG.CLOSABLE,
       ...options
     }),
 
     warning: (content, options = {}) => message.warning(content, {
       duration: MESSAGE_CONFIG.WARNING_DURATION,
+      closable: MESSAGE_CONFIG.CLOSABLE,
       ...options
     }),
 
     info: (content, options = {}) => message.info(content, {
       duration: MESSAGE_CONFIG.SUCCESS_DURATION,
+      closable: MESSAGE_CONFIG.CLOSABLE,
       ...options
     })
   }

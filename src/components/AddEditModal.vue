@@ -71,7 +71,7 @@
 import { computed, ref, watch, nextTick, Suspense, defineAsyncComponent } from 'vue'
 import { useJsonEditor } from '../composables/useJsonEditor.js'
 import { useIcons } from '../composables/useIcons.js'
-import { safeJsonParse } from '../utils/performance.js'
+import { tryJsonParse } from '../utils/performance.js'
 import { UI_CONFIG, TOOLTIP_CONFIG } from '../constants/index.js'
 
 const props = defineProps({
@@ -268,10 +268,9 @@ const handleSave = async () => {
       const rawText = currentRawText.value.trim()
 
       // 检查是否是简单字符串（不是JSON但可以作为字符串值）
-      const quotedString = `"${rawText}"`
-      const quotedParsed = safeJsonParse(quotedString)
+      const quotedParsed = tryJsonParse(JSON.stringify(rawText))
 
-      if (quotedParsed !== null) {
+      if (quotedParsed.success) {
         // 这是一个有效的字符串，使用原始文本作为字符串值
         finalValue = rawText
         message.success('已将输入作为字符串值保存')

@@ -693,7 +693,6 @@ function validateCookieData (name, value) {
 async function getCurrentCookies () {
   try {
     const tab = await getActiveTab()
-    const url = createUrl(tab.url)
 
     // 检查必要的权限
     if (!chrome.cookies) {
@@ -1390,6 +1389,8 @@ function formatBytes (bytes) {
 /**
  * 全局错误处理器
  */
-window.addEventListener('unhandledrejection', (event) => {
-  console.error('未处理的Promise拒绝:', event.reason)
-})
+if (typeof window !== 'undefined') {
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error('未处理的Promise拒绝:', event.reason)
+  })
+}

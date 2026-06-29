@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { useMessageManager } from './useMessageManager.js'
-import { safeJsonParse, safeJsonStringify } from '../utils/performance.js'
+import { safeJsonStringify, tryJsonParse } from '../utils/performance.js'
 import { EDITOR_CONFIG } from '../constants/index.js'
 
 export function useJsonEditor () {
@@ -35,14 +35,13 @@ export function useJsonEditor () {
         const trimmedText = text.trim()
 
         // 尝试解析JSON - 编辑器在 Code 模式下期望有效的JSON
-        const parsed = safeJsonParse(trimmedText)
+        const parsed = tryJsonParse(trimmedText)
 
         // 特殊处理：对于简单字符串，需要用引号包围才是有效JSON
-        if (parsed === null) {
+        if (!parsed.success) {
           // 检查是否是未加引号的简单字符串
-          const quotedString = `"${trimmedText}"`
-          const quotedParsed = safeJsonParse(quotedString)
-          if (quotedParsed !== null) {
+          const quotedParsed = tryJsonParse(JSON.stringify(trimmedText))
+          if (quotedParsed.success) {
             // 这是一个未加引号的字符串，设置为错误但不显示消息
             hasValidationError.value = true
           } else {
@@ -89,8 +88,8 @@ export function useJsonEditor () {
       // 只有当字符串明显是JSON结构时才尝试解析
       if ((trimmedValue.startsWith('{') && trimmedValue.endsWith('}')) ||
         (trimmedValue.startsWith('[') && trimmedValue.endsWith(']'))) {
-        const parsed = safeJsonParse(trimmedValue)
-        return parsed !== null ? parsed : value
+        const parsed = tryJsonParse(trimmedValue)
+        return parsed.success ? parsed.value : value
       }
 
       // 对于普通字符串，直接返回原值
@@ -181,14 +180,14 @@ export function useJsonEditor () {
 
         if (lines.length > 1) {
           // 如果有多行，必须是有效的JSON格式（对象或数组）
-          const parsed = safeJsonParse(trimmedValue)
-          if (parsed === null) {
+          const parsed = tryJsonParse(trimmedValue)
+          if (!parsed.success) {
             throw new Error('多行内容必须是有效的JSON格式')
           }
         } else {
           // 单行也需要是有效的JSON值
-          const parsed = safeJsonParse(trimmedValue)
-          if (parsed === null && trimmedValue !== 'null') {
+          const parsed = tryJsonParse(trimmedValue)
+          if (!parsed.success) {
             throw new Error('单行内容必须是有效的JSON值')
           }
         }

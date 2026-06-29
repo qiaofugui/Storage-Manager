@@ -52,10 +52,20 @@ export function createAsyncComponent (loader, options = {}) {
  * @returns {*} 解析结果
  */
 export function safeJsonParse (str, defaultValue = null) {
+  const result = tryJsonParse(str)
+  return result.success ? result.value : defaultValue
+}
+
+/**
+ * JSON解析结果对象，可区分合法 null 和解析失败
+ * @param {string} str JSON字符串
+ * @returns {{ success: boolean, value: *, error?: Error }}
+ */
+export function tryJsonParse (str) {
   try {
-    return JSON.parse(str)
-  } catch {
-    return defaultValue
+    return { success: true, value: JSON.parse(str) }
+  } catch (error) {
+    return { success: false, value: null, error }
   }
 }
 

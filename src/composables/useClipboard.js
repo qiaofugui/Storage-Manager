@@ -1,12 +1,25 @@
 import { useMessageManager } from './useMessageManager.js'
 import { StorageManager } from '../utils/storage.js'
-import { safeJsonParse } from '../utils/performance.js'
+import { tryJsonParse } from '../utils/performance.js'
 import { MESSAGE_CONFIG } from '../constants/index.js'
 
-const { setBatch, hasItem } = StorageManager
+const { getAll, setBatch } = StorageManager
 
 export function useClipboard (activeTab, refreshData) {
   const { message } = useMessageManager()
+
+  const createCookieDuplicateKey = (key, value) => {
+    if (value && typeof value === 'object') {
+      if (value.key) {
+        return value.key
+      }
+
+      const name = value.name || key
+      return [name, value.domain || '', value.path || '/'].join('|')
+    }
+
+    return [key, '', '/'].join('|')
+  }
 
   // 粘贴数据
   const pasteData = async () => {
@@ -27,13 +40,14 @@ export function useClipboard (activeTab, refreshData) {
       }
 
       // 使用安全的JSON解析
-      const jsonData = safeJsonParse(text)
+      const parseResult = tryJsonParse(text)
 
-      if (!jsonData) {
+      if (!parseResult.success) {
         message.error('JSON格式错误，请检查剪贴板内容')
         return
       }
 
+      const jsonData = parseResult.value
       if (typeof jsonData !== 'object' || jsonData === null || Array.isArray(jsonData)) {
         message.error('粘贴的数据必须是JSON对象格式，例如: {"key": "value"}')
         return
@@ -60,15 +74,22 @@ export function useClipboard (activeTab, refreshData) {
       // 检查重复的键名
       const duplicateKeys = []
       const keys = Object.keys(jsonData)
+      const currentItems = await getAll(activeTab.value)
+      const existingKeys = new Set(
+        currentItems.map(item => activeTab.value === 'cookie'
+          ? createCookieDuplicateKey(item.name, item)
+          : item.key
+        )
+      )
 
       for (const key of keys) {
         const value = jsonData[key]
-        const identity = activeTab.value === 'cookie' && value && typeof value === 'object'
-          ? { ...value, name: value.name || key, key: value.key || key }
-          : key
-        const exists = await hasItem(activeTab.value, identity)
-        if (exists) {
-          duplicateKeys.push(identity.name || key)
+        const duplicateKey = activeTab.value === 'cookie' ? createCookieDuplicateKey(key, value) : key
+        if (existingKeys.has(duplicateKey)) {
+          duplicateKeys.push(activeTab.value === 'cookie' && value && typeof value === 'object'
+            ? value.name || key
+            : key
+          )
         }
       }
 

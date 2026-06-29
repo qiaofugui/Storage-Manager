@@ -129,8 +129,6 @@ npm run build
 - `clipboardWrite`：将数据项复制到剪贴板
 - `http://*/*`、`https://*/*`：允许在 HTTP/HTTPS 站点读取和管理当前页面 Cookie
 
-如果准备发布到扩展商店，建议评估是否将 host permissions 调整为 optional host permissions，并在隐私说明中明确所有数据仅在本地处理。
-
 ## 技术架构
 
 ```text

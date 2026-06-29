@@ -59,7 +59,7 @@
           </n-space>
           <n-space>
             <n-button @click="handleClose">{{ t('buttonCancel') }}</n-button>
-            <n-button type="primary" @click="handleSave" :disabled="saving">{{ t('buttonSave') }}</n-button>
+            <n-button type="primary" @click="handleSave" :disabled="saving || hasValidationError">{{ t('buttonSave') }}</n-button>
           </n-space>
         </n-space>
       </template>
@@ -71,7 +71,6 @@
 import { computed, ref, watch, nextTick, Suspense } from 'vue'
 import { useJsonEditor } from '../composables/useJsonEditor.js'
 import { useIcons } from '../composables/useIcons.js'
-import { tryJsonParse } from '../utils/performance.js'
 import { UI_CONFIG, TOOLTIP_CONFIG } from '../constants/index.js'
 import { JsonEditorVue3 } from './JsonEditorAsync.js'
 import { useI18n } from '../i18n/index.js'
@@ -245,45 +244,19 @@ const handleSave = async () => {
     return
   }
 
-  // 如果没有验证错误，进行常规验证
-  if (!hasValidationError.value) {
-    // 静默验证JSON格式 - 不显示"格式正确"消息
-    if (!validateValue(true)) {
-      return
-    }
+  if (hasValidationError.value) {
+    message.error(t('messageInvalidJsonEditor'))
+    return
   }
-  // 如果有验证错误，我们会在保存逻辑中特殊处理
+
+  // 静默验证JSON格式 - 不显示"格式正确"消息
+  if (!validateValue(true)) {
+    return
+  }
 
   saving.value = true
   try {
-    let finalValue = ''
-
-    // 特殊处理：如果编辑器有验证错误，检查是否可以作为字符串保存
-    if (hasValidationError.value && currentRawText.value && currentRawText.value.trim() !== '') {
-      const rawText = currentRawText.value.trim()
-
-      // 检查是否是简单字符串（不是JSON但可以作为字符串值）
-      const quotedParsed = tryJsonParse(JSON.stringify(rawText))
-
-      if (quotedParsed.success) {
-        // 这是一个有效的字符串，使用原始文本作为字符串值
-        finalValue = rawText
-        message.success(t('messageSavedAsString'))
-      } else {
-        // 真正的格式错误，不能保存
-        message.error(t('messageInvalidJsonEditor'))
-        return
-      }
-    } else {
-      // 没有验证错误，使用正常的转换逻辑
-      finalValue = stringifyValue(parsedValue.value)
-
-      // 兜底处理：如果转换失败但有原始输入，使用原始输入
-      if ((finalValue === '' || finalValue === null || finalValue === undefined) &&
-        currentRawText.value && currentRawText.value.trim() !== '') {
-        finalValue = currentRawText.value.trim()
-      }
-    }
+    const finalValue = stringifyValue(parsedValue.value)
 
     props.formData.value = finalValue
     await emit('save')

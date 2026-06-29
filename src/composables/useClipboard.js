@@ -32,7 +32,7 @@ export function useClipboard (activeTab, refreshData) {
         return
       }
 
-      message.info(t('messageReadClipboard'))
+      // message.info(t('messageReadClipboard'))
 
       const text = await navigator.clipboard.readText()
 

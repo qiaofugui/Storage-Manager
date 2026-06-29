@@ -269,9 +269,6 @@
   "messageSaveFailedInvalidData": {
     "message": "Save failed: invalid data format - {message}"
   },
-  "messageSavedAsString": {
-    "message": "Saved input as a string value"
-  },
   "messageStorageEmpty": {
     "message": "Current {storageType} is empty"
   },

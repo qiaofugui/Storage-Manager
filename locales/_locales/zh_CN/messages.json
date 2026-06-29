@@ -90,7 +90,7 @@
     "message": "批量编辑 {storageType}"
   },
   "modalBatchEditHelp": {
-    "message": "请编辑 {storageType} 数据。保存后将覆盖当前所有 {storageType} 数据。"
+    "message": "编辑 {storageType} 数据。保存后将覆盖当前所有 {storageType} 数据。"
   },
   "placeholderKey": {
     "message": "请输入键名"
@@ -268,9 +268,6 @@
   },
   "messageSaveFailedInvalidData": {
     "message": "保存失败：数据格式错误 - {message}"
-  },
-  "messageSavedAsString": {
-    "message": "已将输入作为字符串值保存"
   },
   "messageStorageEmpty": {
     "message": "当前 {storageType} 为空"

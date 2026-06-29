@@ -33,6 +33,7 @@
 
 ### 稳定性与兼容性
 - 对特殊页面协议进行拦截，例如 `chrome://`、`edge://`、`about:`、扩展页面等
+- 打开弹窗时如果当前页面仍在加载，会短暂等待页面完成，减少刚点击扩展就失败的情况
 - 对 Chrome Extension API 不可用的场景给出明确错误
 - 对不可序列化的 JSON 数据显式报错，避免保存成错误字符串
 - 搜索时会兼容非字符串值，避免数字、布尔值或空值导致过滤失败
@@ -81,6 +82,8 @@ npm run build
 ### 查看与搜索
 
 打开目标网页后点击扩展图标，弹窗会读取当前标签页的数据。通过顶部标签页切换 `localStorage`、`sessionStorage` 或 Cookie，通过搜索框过滤键名和值。
+
+数据表格使用分页展示，默认每页 20 条，可切换为 10、20 或 50 条。分页模式避免和虚拟滚动叠加造成状态复杂度，也更适合扩展弹窗的固定高度窗口。
 
 ### 新增或编辑
 
@@ -151,6 +154,14 @@ src/
 │   └── index.js
 ├── utils/
 │   ├── storage.js
+│   ├── storage/
+│   │   ├── async.js
+│   │   ├── chromeApi.js
+│   │   ├── cookieIdentity.js
+│   │   ├── cookieService.js
+│   │   ├── manager.js
+│   │   ├── validators.js
+│   │   └── webStorageService.js
 │   └── performance.js
 ├── App.vue
 ├── main.js
@@ -159,7 +170,13 @@ src/
 
 核心模块：
 
-- `src/utils/storage.js`：封装 Chrome Extension API、Web Storage 与 Cookie 操作
+- `src/utils/storage.js`：存储模块统一入口，向外导出 `StorageManager`
+- `src/utils/storage/manager.js`：统一封装 Web Storage 与 Cookie 操作，提供 `getAll`、`setItem`、`removeItem`、`clear`、`setBatch` 等方法
+- `src/utils/storage/chromeApi.js`：封装 Chrome Tabs 与 Scripting API，并处理页面加载中的等待逻辑
+- `src/utils/storage/webStorageService.js`：负责 `localStorage` 与 `sessionStorage` 的读取、写入、删除、清空和批量覆盖
+- `src/utils/storage/cookieService.js`：负责 Cookie 的读取、设置、删除、清空和批量覆盖
+- `src/utils/storage/cookieIdentity.js`：处理 Cookie 的唯一标识、路径、域名、SameSite 和编辑器 key 映射
+- `src/utils/storage/validators.js`：集中管理存储类型、键名、Cookie 名称和 URL 校验
 - `src/composables/useStorage.js`：管理页面状态、刷新、保存、删除和批量保存流程
 - `src/composables/useClipboard.js`：处理剪贴板导入
 - `src/composables/useJsonEditor.js`：处理 JSON 编辑器配置、解析、验证和格式化

@@ -1,6 +1,6 @@
 <template>
   <n-data-table class="h-full" :columns="columns" :data="data" :pagination="paginationConfig" :loading="loading"
-    size="small" striped flex-height virtual-scroll />
+    size="small" striped flex-height />
 </template>
 
 <script setup>

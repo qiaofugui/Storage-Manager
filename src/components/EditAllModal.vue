@@ -134,6 +134,22 @@ const saving = ref(false)
 const reloading = ref(false)
 const editorOptions = ref(createEditorOptions())
 
+const createCookieEditorLabel = (item, usedLabels) => {
+  const baseLabel = item.domain || item.path
+    ? `${item.name} @ ${item.domain || 'host'}${item.path || '/'}`
+    : item.name
+  let label = baseLabel
+  let index = 2
+
+  while (usedLabels.has(label)) {
+    label = `${baseLabel} #${index}`
+    index++
+  }
+
+  usedLabels.add(label)
+  return label
+}
+
 // 加载当前数据到JSON编辑器
 const loadCurrentData = async (showMessage = false) => {
   if (showMessage) {
@@ -143,9 +159,12 @@ const loadCurrentData = async (showMessage = false) => {
   try {
     if (props.data.length > 0) {
       const dataObj = {}
+      const usedCookieLabels = new Set()
       props.data.forEach(item => {
         if (props.storageType === 'cookie') {
-          dataObj[item.key] = {
+          const label = createCookieEditorLabel(item, usedCookieLabels)
+          dataObj[label] = {
+            key: item.key,
             name: item.name,
             value: item.value,
             domain: item.domain,
@@ -257,6 +276,14 @@ const validateAllKeyValuePairs = (data) => {
     if (!key || key.trim() === '') {
       validationErrors.push('存在空的键名')
       return
+    }
+
+    if (props.storageType === 'cookie') {
+      const cookieName = value && typeof value === 'object' && value.name ? value.name : key
+      if (!cookieName || String(cookieName).trim() === '') {
+        validationErrors.push('存在空的 Cookie 名称')
+        return
+      }
     }
 
     // 检查值是否可以正确序列化

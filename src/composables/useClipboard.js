@@ -62,9 +62,13 @@ export function useClipboard (activeTab, refreshData) {
       const keys = Object.keys(jsonData)
 
       for (const key of keys) {
-        const exists = await hasItem(activeTab.value, key)
+        const value = jsonData[key]
+        const identity = activeTab.value === 'cookie' && value && typeof value === 'object'
+          ? { ...value, name: value.name || key, key: value.key || key }
+          : key
+        const exists = await hasItem(activeTab.value, identity)
         if (exists) {
-          duplicateKeys.push(key)
+          duplicateKeys.push(identity.name || key)
         }
       }
 

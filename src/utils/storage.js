@@ -7,21 +7,30 @@ function validateStorageType (storageType) {
   }
 }
 
-function validateKey (key) {
-  if (typeof key !== 'string' || key.length === 0) {
-    throw new Error('key 必须是非空字符串')
+function validateNonEmptyString (value, fieldName) {
+  if (typeof value !== 'string' || value.length === 0) {
+    throw new Error(`${fieldName} 必须是非空字符串`)
   }
+}
 
-  // 检查key长度限制
+function validateStorageKey (key) {
+  validateNonEmptyString(key, 'key')
+
   if (key.length > 1024) {
     throw new Error('key 长度不能超过 1024 个字符')
   }
+}
 
-  // Cookie名称不能包含特殊字符 - 更严格的验证
-  if (key.includes('=') || key.includes(';') || key.includes(',') ||
-    key.includes('\n') || key.includes('\r') || key.includes('\t') ||
-    key.includes(' ') || key.includes('"') || key.includes("'")) {
-    throw new Error('key 包含无效字符')
+function validateCookieName (name) {
+  validateNonEmptyString(name, 'Cookie 名称')
+
+  if (name.length > 1024) {
+    throw new Error('Cookie 名称长度不能超过 1024 个字符')
+  }
+
+  // Cookie name follows the HTTP token rules; Web Storage keys are validated separately.
+  if (/[\u0000-\u001F\u007F\s()<>@,;:\\"/\[\]?={}]/.test(name)) {
+    throw new Error('Cookie 名称包含无效字符')
   }
 }
 
@@ -109,6 +118,89 @@ function createCookieEditorKey (cookie) {
   ]
 
   return parts.map(part => encodeURIComponent(part)).join('|')
+}
+
+function parseCookieEditorKey (key) {
+  if (typeof key !== 'string' || !key.includes('|')) {
+    return null
+  }
+
+  const rawParts = key.split('|')
+  if (rawParts.length !== 5) {
+    return null
+  }
+
+  let parts
+  try {
+    parts = rawParts.map(part => decodeURIComponent(part))
+  } catch {
+    return null
+  }
+
+  const [name, domain = '', path = '/', storeId = '', partitionKeyText = ''] = parts
+
+  if (!name) {
+    return null
+  }
+
+  const identity = {
+    name,
+    domain,
+    path: normalizeCookiePath(path)
+  }
+
+  if (storeId) {
+    identity.storeId = storeId
+  }
+
+  if (partitionKeyText) {
+    try {
+      identity.partitionKey = JSON.parse(partitionKeyText)
+    } catch {
+      identity.partitionKey = partitionKeyText
+    }
+  }
+
+  return identity
+}
+
+function normalizeCookieIdentity (item, fallbackValue) {
+  if (typeof item === 'object' && item !== null) {
+    const parsedKey = parseCookieEditorKey(item.key)
+    return {
+      ...parsedKey,
+      ...item,
+      name: item.name || parsedKey?.name || item.key,
+      value: item.value ?? fallbackValue
+    }
+  }
+
+  const parsedKey = parseCookieEditorKey(item)
+  return parsedKey || { name: item, value: fallbackValue }
+}
+
+function cookieIdentityMatches (cookie, identity) {
+  if (cookie.name !== identity.name) {
+    return false
+  }
+
+  if (identity.domain && cookie.domain !== identity.domain) {
+    return false
+  }
+
+  if (identity.path && cookie.path !== identity.path) {
+    return false
+  }
+
+  if (identity.storeId && cookie.storeId !== identity.storeId) {
+    return false
+  }
+
+  if (identity.partitionKey) {
+    return JSON.stringify(cookie.partitionKey || null) === JSON.stringify(identity.partitionKey)
+  }
+
+  return true
 }
 
 /**
@@ -292,7 +384,7 @@ async function getCurrentStorage (storageType) {
  */
 async function setStorageItem (storageType, key, value) {
   validateStorageType(storageType)
-  validateKey(key)
+  validateStorageKey(key)
 
   if (value === undefined) {
     throw new Error('value 不能为 undefined')
@@ -344,7 +436,7 @@ async function setStorageItem (storageType, key, value) {
  */
 async function removeStorageItem (storageType, key) {
   validateStorageType(storageType)
-  validateKey(key)
+  validateStorageKey(key)
 
   try {
     const tab = await getActiveTab()
@@ -437,7 +529,7 @@ async function setBatchStorage (storageType, data, clearFirst = false) {
   // 验证所有 key 并计算总大小
   let totalSize = 0
   entries.forEach(([key, value]) => {
-    validateKey(key)
+    validateStorageKey(key)
     const stringValue = safeJSONStringify(value)
     totalSize += new Blob([key + stringValue]).size
   })
@@ -514,7 +606,7 @@ async function setBatchStorage (storageType, data, clearFirst = false) {
  */
 async function hasStorageItem (storageType, key) {
   validateStorageType(storageType)
-  validateKey(key)
+  validateStorageKey(key)
 
   try {
     const tab = await getActiveTab()
@@ -555,7 +647,7 @@ async function hasStorageItem (storageType, key) {
  * 验证Cookie名称和值
  */
 function validateCookieData (name, value) {
-  validateKey(name)
+  validateCookieName(name)
 
   if (value !== undefined && typeof value === 'string') {
     // Cookie 值不能包含某些特殊字符，并检查长度
@@ -713,9 +805,9 @@ async function setCookieItem (name, value, options = {}) {
 }
 
 async function removeCookieItem (item) {
-  const cookie = typeof item === 'object' && item !== null ? item : { name: item }
-  const name = cookie.name || cookie.key
-  validateKey(name)
+  const cookie = normalizeCookieIdentity(item)
+  const name = cookie.name
+  validateCookieName(name)
 
   if (!chrome.cookies) {
     throw new Error('缺少 Cookie 权限')
@@ -845,11 +937,13 @@ async function setBatchCookies (data, clearFirst = false) {
         let cookieValue, options = {}
 
         if (typeof value === 'object' && value !== null) {
+          const identity = normalizeCookieIdentity(value)
           cookieName = getCookieInputName(key, value)
           cookieValue = value.value !== undefined ? value.value : JSON.stringify(value)
-          options = { ...value }
+          options = { ...identity, ...value }
           delete options.name // name 单独作为 Cookie 名称处理
           delete options.value // 移除value属性，避免混淆
+          delete options.key // key 只作为编辑器内部身份使用
         } else {
           cookieValue = typeof value === 'string' ? value : JSON.stringify(value)
         }
@@ -882,7 +976,8 @@ async function setBatchCookies (data, clearFirst = false) {
 }
 
 async function hasCookieItem (name) {
-  validateKey(name)
+  const identity = normalizeCookieIdentity(name)
+  validateCookieName(identity.name)
 
   if (!chrome.cookies) {
     throw new Error('缺少 Cookie 权限')
@@ -898,7 +993,7 @@ async function hasCookieItem (name) {
 
       chrome.cookies.getAll({
         url: tab.url,
-        name: name
+        name: identity.name
       }, (cookies) => {
         clearTimeout(timeoutId)
 
@@ -910,7 +1005,7 @@ async function hasCookieItem (name) {
       })
     })
 
-    return cookies.length > 0
+    return cookies.some(cookie => cookieIdentityMatches(cookie, identity))
   } catch (error) {
     throw new Error(`检查 Cookie 失败: ${error.message}`)
   }
@@ -944,14 +1039,16 @@ export const StorageManager = {
    */
   async getItem (type, key) {
     validateStorageType(type)
-    validateKey(key)
 
     try {
       if (type === 'cookie') {
+        const identity = normalizeCookieIdentity(key)
+        validateCookieName(identity.name)
         const cookies = await getCurrentCookies()
-        return cookies.find(c => c.name === key) || null
+        return cookies.find(cookie => cookieIdentityMatches(cookie, identity)) || null
       }
 
+      validateStorageKey(key)
       const items = await getCurrentStorage(type)
       return items.find(i => i.key === key) || null
     } catch (error) {
@@ -969,11 +1066,17 @@ export const StorageManager = {
    */
   async setItem (type, key, value, options = {}) {
     validateStorageType(type)
-    validateKey(key)
 
     if (type === 'cookie') {
-      return await setCookieItem(key, value, options)
+      const identity = normalizeCookieIdentity(key, value)
+      const cookieOptions = typeof key === 'object' && key !== null
+        ? { ...identity, ...options }
+        : options
+      const cookieName = typeof key === 'string' ? key : identity.name
+      return await setCookieItem(cookieName, value, cookieOptions)
     }
+
+    validateStorageKey(key)
     return await setStorageItem(type, key, value)
   },
 
@@ -990,7 +1093,7 @@ export const StorageManager = {
       return await removeCookieItem(key)
     }
 
-    validateKey(key)
+    validateStorageKey(key)
     return await removeStorageItem(type, key)
   },
 
@@ -1032,11 +1135,12 @@ export const StorageManager = {
    */
   async hasItem (type, key) {
     validateStorageType(type)
-    validateKey(key)
 
     if (type === 'cookie') {
       return await hasCookieItem(key)
     }
+
+    validateStorageKey(key)
     return await hasStorageItem(type, key)
   },
 

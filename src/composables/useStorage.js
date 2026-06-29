@@ -201,9 +201,10 @@ export function useStorage () {
       if (typeof item === 'string') {
         textToCopy = item
       } else {
-        const copyKey = activeTab.value === 'cookie' ? item.name : item.key
+        const copyKey = item.key
         const copyValue = activeTab.value === 'cookie'
           ? {
+              key: item.key,
               name: item.name,
               value: item.value,
               domain: item.domain,

@@ -126,6 +126,8 @@ const editorKey = ref(0)
 const originalValue = ref(null)
 const originalKey = ref(null)
 
+const getItemFormKey = (item) => item?.type === 'cookie' ? item.name : item?.key
+
 // 添加标记防止循环更新
 const isUpdatingFromFormData = ref(false)
 const isUpdatingFromParsedValue = ref(false)
@@ -161,7 +163,7 @@ watch(() => props.show, (show) => {
     // 保存原始值
     if (props.editingItem) {
       originalValue.value = props.editingItem.value
-      originalKey.value = props.editingItem.key
+      originalKey.value = getItemFormKey(props.editingItem)
     } else {
       originalValue.value = ''
       originalKey.value = ''
@@ -186,7 +188,7 @@ watch(() => props.show, (show) => {
 watch(() => props.editingItem, (newItem) => {
   if (props.show && newItem) {
     originalValue.value = newItem.value
-    originalKey.value = newItem.key
+    originalKey.value = getItemFormKey(newItem)
   }
 }, { immediate: true })
 

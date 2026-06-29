@@ -1,167 +1,195 @@
 # Storage Manager - 浏览器存储管理扩展
 
-一个功能强大的浏览器扩展，用于管理网页的 localStorage 和 sessionStorage 数据。基于 Vue 3 + Vite + Tailwind CSS + Naive UI 构建，提供现代化的用户界面和丰富的数据操作功能。
+一个用于管理当前网页 `localStorage`、`sessionStorage` 和 Cookie 数据的浏览器扩展。项目基于 Vue 3、Vite、Tailwind CSS 和 Naive UI 构建，提供查看、搜索、新增、编辑、删除、复制、粘贴和批量编辑能力。
 
-## ✨ 主要特性
+## 主要特性
 
-### 📊 双存储支持
-- **localStorage 管理** - 持久化存储数据管理
-- **sessionStorage 管理** - 会话级存储数据管理
-- **标签页切换** - 便捷切换不同存储类型
+### 多类型存储管理
+- `localStorage` 管理：查看和维护当前页面的持久化 Web Storage 数据
+- `sessionStorage` 管理：查看和维护当前页面的会话级 Web Storage 数据
+- Cookie 管理：查看、编辑、删除当前页面可访问的 Cookie，并保留域名、路径、SameSite、Secure、HttpOnly、Store ID、Partition Key 等关键属性
+- 计数标签页：快速切换不同存储类型，并显示当前数据数量
 
-### 🔍 数据操作
-- **实时查看** - 自动读取当前网页的存储数据
-- **搜索过滤** - 支持按键名或值内容搜索
-- **添加数据** - 新增键值对数据项
-- **编辑数据** - 修改现有数据项
-- **删除数据** - 删除单个或全部数据
+### 数据操作
+- 实时读取当前激活标签页的数据
+- 按键名或值搜索过滤
+- 新增、编辑、删除单条数据
+- 清空当前存储类型
+- 一键清除当前页面的 `localStorage`、`sessionStorage` 和 Cookie
 
-### 📝 高级编辑功能
-- **JSON 编辑器** - 支持多种编辑模式（树形、代码、表单、文本、预览）
-- **批量编辑** - 一次性编辑所有存储数据
-- **格式验证** - 实时JSON格式验证和错误提示
-- **格式化** - 自动格式化JSON数据
+### JSON 与批量编辑
+- 使用 JSON 编辑器编辑单个值或完整数据集
+- 支持树形、代码、表单、文本等编辑模式
+- 简单字符串、数字、布尔值和 JSON 对象/数组均可保存
+- 批量编辑保存前会验证数据格式
+- 批量覆盖写入失败时会尝试恢复原始数据，降低半写入导致的数据丢失风险
 
-### 📋 数据交换
-- **复制功能** - 复制单个数据项到剪贴板（JSON格式）
-- **粘贴功能** - 从剪贴板粘贴JSON数据
-- **重复检测** - 粘贴时自动检测重复键名
-- **批量导入** - 支持批量粘贴多个键值对
+### 剪贴板导入导出
+- 复制单个数据项为 JSON 对象
+- 从剪贴板粘贴 JSON 对象
+- 粘贴前检测重复键名，避免误覆盖已有数据
+- Cookie 复制会包含 Cookie 身份与属性信息，便于后续恢复或迁移
 
-### 🎨 用户体验
-- **现代化UI** - 基于 Naive UI 的美观界面
-- **响应式设计** - 适配不同屏幕尺寸
-- **实时反馈** - 操作结果即时提示
-- **键盘友好** - 支持常用快捷键操作
+### 稳定性与兼容性
+- 对特殊页面协议进行拦截，例如 `chrome://`、`edge://`、`about:`、扩展页面等
+- 对 Chrome Extension API 不可用的场景给出明确错误
+- 对不可序列化的 JSON 数据显式报错，避免保存成错误字符串
+- Manifest 使用 `_locales` 资源声明名称和描述，便于后续多语言扩展
 
-## 📦 安装和使用
+## 安装和使用
 
-### 开发环境安装
+### 开发环境
 
 ```bash
-# 克隆项目
-git clone <repository-url>
-
-# 安装依赖
 npm install
-
-# 开发模式
 npm run dev
+```
 
-# 构建扩展
+### 构建扩展
+
+```bash
 npm run build
 ```
 
-### 浏览器安装
+构建产物会输出到 `dist` 目录。
 
-#### Chrome/Edge 安装
-1. 运行 `npm run build` 构建扩展
-2. 打开浏览器扩展管理页面：
+### Chrome / Edge 安装
+
+1. 运行 `npm run build`
+2. 打开扩展管理页面：
    - Chrome: `chrome://extensions/`
    - Edge: `edge://extensions/`
-3. 开启「开发者模式」
-4. 点击「加载已解压的扩展程序」
+3. 开启“开发者模式”
+4. 点击“加载已解压的扩展程序”
 5. 选择项目的 `dist` 文件夹
 
-#### Firefox 安装
-1. 打开 `about:debugging`
-2. 点击「此Firefox」
-3. 点击「临时载入附加组件」
-4. 选择 `dist` 文件夹中的 `manifest.json`
+### Firefox 临时安装
 
-## 🚀 功能使用指南
+1. 运行 `npm run build`
+2. 打开 `about:debugging`
+3. 点击“此 Firefox”
+4. 点击“临时载入附加组件”
+5. 选择 `dist/manifest.json`
 
-### 基本操作
-1. **查看数据** - 点击扩展图标打开面板，自动显示当前页面的存储数据
-2. **切换存储类型** - 点击 localStorage/sessionStorage 标签页切换
-3. **搜索数据** - 在搜索框中输入关键词过滤数据
+> 当前项目主要按 Chrome / Edge 的 MV3 API 实现。Firefox 的 MV3 与 Cookie、Scripting API 行为可能存在差异，发布前建议单独验证。
 
-### 数据管理
-- **新增数据** - 点击「新增」按钮，填写键名和值
-- **编辑数据** - 点击数据行的编辑按钮修改
-- **删除数据** - 点击删除按钮移除单个数据项
-- **清空数据** - 点击「清除」按钮删除所有存储数据
+## 使用说明
 
-### 高级功能
-- **JSON编辑** - 在编辑框中可切换多种编辑模式
-- **批量编辑** - 点击「批量编辑」一次性修改所有数据
-- **复制数据** - 点击复制按钮将数据以JSON格式复制到剪贴板
-- **粘贴数据** - 点击「粘贴」按钮从剪贴板导入JSON数据
+### 查看与搜索
 
-### 数据格式说明
-- **简单值** - 字符串、数字、布尔值直接存储
-- **复杂数据** - 对象和数组自动转换为JSON字符串
-- **粘贴格式** - 支持标准JSON对象格式：`{"key1": "value1", "key2": "value2"}`
+打开目标网页后点击扩展图标，弹窗会读取当前标签页的数据。通过顶部标签页切换 `localStorage`、`sessionStorage` 或 Cookie，通过搜索框过滤键名和值。
 
-## 🛠️ 技术架构
+### 新增或编辑
 
-### 核心技术栈
-- **Vue 3** - 渐进式JavaScript框架，使用Composition API
-- **Vite** - 现代化前端构建工具
-- **Tailwind CSS** - 实用优先的CSS框架
-- **Naive UI** - Vue 3 组件库
-- **json-editor-vue3** - JSON编辑器组件
+点击新增按钮创建数据项；点击表格行操作区的编辑按钮修改已有数据。编辑已有数据时键名会锁定，避免误改成新数据项。
 
-### 项目结构
-```
-src/
-├── components/           # Vue组件
-│   ├── StorageManager.vue       # 主管理组件
-│   ├── StorageTabs.vue          # 存储类型标签页
-│   ├── ActionButtons.vue        # 操作按钮组件
-│   ├── StorageTable.vue         # 数据表格组件
-│   ├── AddEditModal.vue         # 添加/编辑模态框
-│   └── EditAllModal.vue         # 批量编辑模态框
-├── composables/          # 组合式函数
-│   ├── useJsonEditor.js         # JSON编辑器功能
-│   └── useIcons.js              # 图标管理
-├── App.vue              # 根组件
-├── main.js              # 应用入口
-└── style.css            # 全局样式
+### 复制与粘贴
+
+点击复制按钮会将当前数据项复制为 JSON。点击粘贴按钮会读取剪贴板中的 JSON 对象，例如：
+
+```json
+{
+  "token": "abc123",
+  "settings": {
+    "theme": "dark"
+  }
+}
 ```
 
-### 核心功能模块
-- **存储管理** - Chrome Extension API 实现跨标签页存储操作
-- **JSON处理** - 智能解析和序列化JSON数据
-- **剪贴板操作** - 现代浏览器剪贴板API集成
-- **数据验证** - 实时格式验证和错误处理
+粘贴时如果发现重复键名，会阻止导入并提示用户使用批量编辑进行覆盖。
 
-## 🔧 扩展权限说明
+### 批量编辑
+
+批量编辑会把当前类型的所有数据加载为 JSON 对象。保存时会覆盖当前类型的全部数据。项目已加入失败恢复逻辑：当覆盖写入中途失败时，会尝试恢复保存前的数据。
+
+## 扩展权限说明
 
 ```json
 {
   "permissions": [
-    "tabs",           // 查询当前激活标签页
-    "activeTab",      // 访问当前激活标签页
-    "cookies",        // 管理当前站点 Cookie
-    "scripting",      // 在页面中执行脚本
-    "clipboardRead"   // 读取剪贴板内容
+    "activeTab",
+    "cookies",
+    "scripting",
+    "clipboardRead",
+    "clipboardWrite"
   ],
   "host_permissions": [
-    "<all_urls>"      // 支持在用户打开的不同站点读取和管理 Cookie
+    "http://*/*",
+    "https://*/*"
   ]
 }
 ```
 
-## ⚠️ 使用注意事项
+- `activeTab`：访问用户当前主动打开的页面
+- `scripting`：在当前页面上下文中读取和写入 Web Storage
+- `cookies`：读取、设置和删除当前页面 Cookie
+- `clipboardRead`：从剪贴板粘贴 JSON 数据
+- `clipboardWrite`：将数据项复制到剪贴板
+- `http://*/*`、`https://*/*`：允许在 HTTP/HTTPS 站点读取和管理当前页面 Cookie
 
-1. **页面要求** - 扩展需要在目标网页上使用，无法管理扩展页面的存储
-2. **权限限制** - 仅能访问当前激活标签页的存储数据
-3. **数据安全** - 所有操作均在本地进行，不会上传到任何服务器
-4. **格式要求** - 粘贴数据必须是有效的JSON格式
-5. **重复键名** - 粘贴时会自动检测并阻止重复键名覆盖
+如果准备发布到扩展商店，建议评估是否将 host permissions 调整为 optional host permissions，并在隐私说明中明确所有数据仅在本地处理。
 
-## 🤝 开发贡献
+## 技术架构
 
-欢迎提交 Issue 和 Pull Request 来改进这个项目！
+```text
+src/
+├── components/
+│   ├── StorageManager.vue
+│   ├── StorageTabs.vue
+│   ├── ActionButtons.vue
+│   ├── StorageTable.vue
+│   ├── AddEditModal.vue
+│   └── EditAllModal.vue
+├── composables/
+│   ├── useStorage.js
+│   ├── useClipboard.js
+│   ├── useJsonEditor.js
+│   ├── useIcons.js
+│   └── useMessageManager.js
+├── constants/
+│   └── index.js
+├── utils/
+│   ├── storage.js
+│   └── performance.js
+├── App.vue
+├── main.js
+└── style.css
+```
 
-## 📄 许可证
+核心模块：
+
+- `src/utils/storage.js`：封装 Chrome Extension API、Web Storage 与 Cookie 操作
+- `src/composables/useStorage.js`：管理页面状态、刷新、保存、删除和批量保存流程
+- `src/composables/useClipboard.js`：处理剪贴板导入
+- `src/composables/useJsonEditor.js`：处理 JSON 编辑器配置、解析、验证和格式化
+- `src/components/*`：弹窗 UI 和交互组件
+
+## 开发脚本
+
+```bash
+npm run dev            # 启动 Vite 开发服务
+npm run build          # 构建扩展
+npm run preview        # 预览构建产物
+npm run build:analyze  # 构建并分析包体积
+```
+
+## 发布前检查建议
+
+- 运行 `npm run build`
+- 在 Chrome / Edge 中加载 `dist` 手动验证三个存储类型
+- 验证特殊页面，例如新标签页、扩展页面、浏览器设置页
+- 验证批量编辑失败场景是否能按预期提示和恢复
+- 检查 `dist` 产物大小，`json-editor-vue3` 是主要体积来源
+- 根据目标商店要求完善隐私政策和权限说明
+
+## 使用注意事项
+
+1. 扩展只能管理当前激活标签页可访问的数据，不能操作浏览器内部页面。
+2. 所有读取和写入都在本地执行，不会上传到服务器。
+3. Cookie 的设置会受浏览器策略、站点协议、SameSite/Secure 规则和分区 Cookie 支持情况影响。
+4. 批量编辑是覆盖式操作，请在重要站点操作前先复制备份。
+5. 剪贴板粘贴内容必须是 JSON 对象。
+
+## 许可证
 
 MIT License
-
-## 🔗 相关链接
-
-- [Chrome Extension API](https://developer.chrome.com/docs/extensions/)
-- [Vue 3 文档](https://vuejs.org/)
-- [Naive UI](https://www.naiveui.com/)
-- [Tailwind CSS](https://tailwindcss.com/)

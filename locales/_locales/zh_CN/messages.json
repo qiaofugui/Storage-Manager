@@ -1,8 +1,8 @@
 {
   "pluginDesc": {
-    "message": "Manage Storage data easily"
+    "message": "轻松管理 localStorage、sessionStorage 和 Cookie"
   },
   "name": {
-    "message": "Storage Manager"
+    "message": "存储管理器"
   }
 }

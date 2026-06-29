@@ -52,6 +52,9 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     chunkSizeWarningLimit: 1200,
+    modulePreload: {
+      resolveDependencies: (filename, deps) => deps.filter(dep => !dep.includes('json-editor'))
+    },
     rollupOptions: {
       input: {
         popup: 'index.html'

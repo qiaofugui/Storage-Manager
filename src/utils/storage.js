@@ -207,7 +207,7 @@ function cookieIdentityMatches (cookie, identity) {
  * 检查Chrome API可用性
  */
 function checkChromeAPIs () {
-  if (!chrome || !chrome.tabs) {
+  if (typeof chrome === 'undefined' || !chrome.tabs) {
     throw new Error('Chrome Tabs API 不可用')
   }
   if (!chrome.scripting) {
@@ -553,10 +553,19 @@ async function setBatchStorage (storageType, data, clearFirst = false) {
         const errors = []
         let successCount = 0
         const total = Object.keys(dataToSet).length
+        const backupData = {}
+        let rollbackPerformed = false
+        let rollbackError = null
 
         // 先清空（如果需要）
         if (shouldClearFirst) {
           try {
+            for (let i = 0; i < storage.length; i++) {
+              const backupKey = storage.key(i)
+              if (backupKey !== null) {
+                backupData[backupKey] = storage.getItem(backupKey)
+              }
+            }
             storage.clear()
           } catch (e) {
             errors.push(`清空存储失败: ${e.message}`)
@@ -580,7 +589,22 @@ async function setBatchStorage (storageType, data, clearFirst = false) {
           }
         })
 
-        return { success: true, successCount, total, errors, failedEntries }
+        if (shouldClearFirst && failedEntries.length > 0) {
+          try {
+            storage.clear()
+            Object.entries(backupData).forEach(([key, value]) => {
+              storage.setItem(key, value)
+            })
+            rollbackPerformed = true
+            successCount = 0
+            errors.push('批量写入失败，已恢复原始数据')
+          } catch (e) {
+            rollbackError = e.message
+            errors.push(`批量写入失败，恢复原始数据也失败: ${e.message}`)
+          }
+        }
+
+        return { success: true, successCount, total, errors, failedEntries, rollbackPerformed, rollbackError }
       } catch (error) {
         return { success: false, error: error.message }
       }
@@ -594,7 +618,9 @@ async function setBatchStorage (storageType, data, clearFirst = false) {
       success: result.successCount,
       total: result.total,
       errors: result.errors,
-      failedKeys: result.failedEntries
+      failedKeys: result.failedEntries,
+      rollbackPerformed: result.rollbackPerformed,
+      rollbackError: result.rollbackError
     }
   } catch (error) {
     throw new Error(`批量设置 ${storageType} 失败: ${error.message}`)
@@ -910,15 +936,16 @@ async function setBatchCookies (data, clearFirst = false) {
   })
 
   try {
-    const tab = await getActiveTab()
-    const url = createUrl(tab.url)
-
     let clearedCount = 0
     const errors = []
+    let backupCookies = []
+    let rollbackPerformed = false
+    let rollbackError = null
 
     // 如果需要先清空
     if (clearFirst) {
       try {
+        backupCookies = await getCurrentCookies()
         const clearResult = await clearCookies()
         clearedCount = clearResult.clearedCount
         if (clearResult.errors && clearResult.errors.length > 0) {
@@ -963,12 +990,56 @@ async function setBatchCookies (data, clearFirst = false) {
       errors.push(`设置 Cookie ${r.key} 失败: ${r.error}`)
     })
 
+    if (clearFirst && failedResults.length > 0) {
+      try {
+        await clearCookies()
+
+        for (const cookie of backupCookies) {
+          const {
+            key,
+            name,
+            value,
+            domain,
+            path,
+            secure,
+            httpOnly,
+            hostOnly,
+            sameSite,
+            expirationDate,
+            storeId,
+            partitionKey
+          } = cookie
+
+          await setCookieItem(name, value, {
+            key,
+            domain,
+            path,
+            secure,
+            httpOnly,
+            hostOnly,
+            sameSite,
+            expirationDate,
+            storeId,
+            partitionKey
+          })
+        }
+
+        rollbackPerformed = true
+        errors.push('批量写入 Cookie 失败，已恢复原始 Cookie')
+      } catch (e) {
+        rollbackError = e.message
+        errors.push(`批量写入 Cookie 失败，恢复原始 Cookie 也失败: ${e.message}`)
+      }
+    }
+
     return {
-      success: successCount,
+      success: rollbackPerformed ? 0 : successCount,
       total,
       clearedCount,
       errors,
-      failedKeys: failedResults.map(r => r.key)
+      failedKeys: failedResults.map(r => r.key),
+      rollbackPerformed,
+      rollbackError
     }
   } catch (error) {
     throw new Error(`批量设置 Cookie 失败: ${error.message}`)

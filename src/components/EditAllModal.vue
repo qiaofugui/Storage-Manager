@@ -83,7 +83,7 @@ import { computed, watch, ref, Suspense, defineAsyncComponent } from 'vue'
 import { useJsonEditor } from '../composables/useJsonEditor.js'
 import { useIcons } from '../composables/useIcons.js'
 import { deepClone } from '../utils/performance.js'
-import { UI_CONFIG, MESSAGE_CONFIG, TOOLTIP_CONFIG } from '../constants/index.js'
+import { UI_CONFIG, TOOLTIP_CONFIG } from '../constants/index.js'
 
 // 动态导入 JsonEditorVue3 以减少初始包大小
 const JsonEditorVue3 = defineAsyncComponent({

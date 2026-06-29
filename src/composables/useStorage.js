@@ -2,10 +2,9 @@ import { ref, computed } from 'vue'
 import { useMessageManager } from './useMessageManager.js'
 import { StorageManager } from '../utils/storage.js'
 import { debounce } from '../utils/performance.js'
-import { DEBOUNCE_DELAYS } from '../constants/index.js'
+import { DEBOUNCE_DELAYS, STORAGE_TYPE_LIST } from '../constants/index.js'
 
 const { getAll, setItem, removeItem, clear, setBatch, hasItem } = StorageManager
-const STORAGE_TYPES = ['localStorage', 'sessionStorage', 'cookie']
 
 export function useStorage () {
   const { message } = useMessageManager()
@@ -52,7 +51,7 @@ export function useStorage () {
   const refreshCounts = async () => {
     const counts = { ...storageCounts.value }
 
-    await Promise.all(STORAGE_TYPES.map(async (storageType) => {
+    await Promise.all(STORAGE_TYPE_LIST.map(async (storageType) => {
       try {
         const items = await getAll(storageType)
         counts[storageType] = items.length
@@ -119,7 +118,7 @@ export function useStorage () {
 
     loading.value = true
     try {
-      for (const storageType of STORAGE_TYPES) {
+      for (const storageType of STORAGE_TYPE_LIST) {
         try {
           const result = await clear(storageType)
           results.push({ type: storageType, success: true, result })
@@ -180,7 +179,9 @@ export function useStorage () {
       const result = await setBatch(activeTab.value, jsonData, true)
       await refreshData(false, true)
 
-      if (result.success === result.total) {
+      if (result.rollbackPerformed) {
+        message.error('批量保存失败，已恢复原始数据')
+      } else if (result.success === result.total) {
         message.success(`批量保存成功，共保存 ${result.success} 条数据`)
       } else {
         message.warning(`部分保存成功，成功 ${result.success}/${result.total} 条`)

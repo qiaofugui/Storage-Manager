@@ -1,6 +1,6 @@
 {
   "pluginDesc": {
-    "message": "Manage Storage data easily"
+    "message": "Manage localStorage, sessionStorage, and cookies easily"
   },
   "name": {
     "message": "Storage Manager"

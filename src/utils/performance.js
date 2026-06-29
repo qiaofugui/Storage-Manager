@@ -67,9 +67,13 @@ export function safeJsonParse (str, defaultValue = null) {
  */
 export function safeJsonStringify (obj, space = 2) {
   try {
-    return JSON.stringify(obj, null, space)
-  } catch {
-    return String(obj)
+    const result = JSON.stringify(obj, null, space)
+    if (result === undefined) {
+      throw new Error('值不能被序列化为 JSON')
+    }
+    return result
+  } catch (error) {
+    throw new Error(`JSON 序列化失败: ${error.message}`)
   }
 }
 

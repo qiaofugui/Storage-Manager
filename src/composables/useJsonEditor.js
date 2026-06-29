@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { useMessageManager } from './useMessageManager.js'
 import { safeJsonParse, safeJsonStringify } from '../utils/performance.js'
-import { EDITOR_CONFIG, MESSAGE_CONFIG } from '../constants/index.js'
+import { EDITOR_CONFIG } from '../constants/index.js'
 
 export function useJsonEditor () {
   const { message, silentMessage, forceMessage } = useMessageManager()

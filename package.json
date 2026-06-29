@@ -8,7 +8,6 @@
     "dev": "vite",
     "build": "vite build",
     "check": "vite build",
-    "lint": "vite build",
     "build:analyze": "vite build && npx vite-bundle-analyzer dist",
     "preview": "vite preview"
   },

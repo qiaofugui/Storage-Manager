@@ -187,7 +187,6 @@ src/
 ```bash
 npm run dev            # 启动 Vite 开发服务
 npm run check          # 构建检查
-npm run lint           # 当前等同构建检查
 npm run build          # 构建扩展
 npm run preview        # 预览构建产物
 npm run build:analyze  # 构建并分析包体积

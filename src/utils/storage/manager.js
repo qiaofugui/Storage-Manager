@@ -274,15 +274,21 @@ export const StorageManager = {
 
       if (health.capabilities.pageAccess) {
         try {
-          const testKey = '__health_check_' + Date.now()
-          await this.setItem(type, testKey, 'test')
-          const retrieved = await this.getItem(type, testKey)
-          await this.removeItem(type, testKey)
+          if (type === 'cookie') {
+            await getCurrentCookies()
+            health.capabilities.read = true
+            health.capabilities.readWrite = null
+          } else {
+            const testKey = '__health_check_' + Date.now()
+            await this.setItem(type, testKey, 'test')
+            const retrieved = await this.getItem(type, testKey)
+            await this.removeItem(type, testKey)
 
-          health.capabilities.readWrite = !!retrieved
-          if (!retrieved) {
-            health.healthy = false
-            health.issues.push('存储读写测试失败')
+            health.capabilities.readWrite = !!retrieved
+            if (!retrieved) {
+              health.healthy = false
+              health.issues.push('存储读写测试失败')
+            }
           }
         } catch (error) {
           health.healthy = false

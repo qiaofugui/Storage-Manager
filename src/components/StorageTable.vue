@@ -17,6 +17,14 @@ const props = defineProps({
   loading: {
     type: Boolean,
     default: false
+  },
+  activeTab: {
+    type: String,
+    default: ''
+  },
+  searchQuery: {
+    type: String,
+    default: ''
   }
 })
 
@@ -38,6 +46,13 @@ watch(
     if (currentPage.value > totalPages && totalPages > 0) {
       currentPage.value = totalPages
     }
+  }
+)
+
+watch(
+  () => [props.activeTab, props.searchQuery],
+  () => {
+    currentPage.value = 1
   }
 )
 

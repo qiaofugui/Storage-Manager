@@ -29,7 +29,7 @@
 
       <!-- 表格 -->
       <div class="flex-1 overflow-hidden">
-        <StorageTable :data="filteredData" :loading="loading" @copy="copyToClipboard" @delete="deleteItem"
+        <StorageTable :data="filteredData" :loading="loading" :active-tab="activeTab" :search-query="searchQuery" @copy="copyToClipboard" @delete="deleteItem"
           @edit="editItem" />
       </div>
     </div>
@@ -45,7 +45,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { defineAsyncComponent, ref, reactive, computed, onMounted } from 'vue'
 import { useStorage } from '../composables/useStorage.js'
 import { useClipboard } from '../composables/useClipboard.js'
 import { useIcons } from '../composables/useIcons.js'
@@ -53,8 +53,8 @@ import { useI18n } from '../i18n/index.js'
 import Header from './Header.vue'
 import StorageTabs from './StorageTabs.vue'
 import StorageTable from './StorageTable.vue'
-import AddEditModal from './AddEditModal.vue'
-import EditAllModal from './EditAllModal.vue'
+const AddEditModal = defineAsyncComponent(() => import('./AddEditModal.vue'))
+const EditAllModal = defineAsyncComponent(() => import('./EditAllModal.vue'))
 
 // 使用统一的图标系统
 const { SearchIcon } = useIcons()

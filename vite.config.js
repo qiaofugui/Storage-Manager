@@ -75,6 +75,6 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    include: ['json-editor-vue3', 'vue']
+    include: ['vue']
   }
 })

@@ -28,11 +28,6 @@ function normalizeLocale (locale) {
 }
 
 function detectLocale () {
-  const storedLocale = globalThis.localStorage?.getItem(STORAGE_KEY)
-  if (storedLocale) {
-    return normalizeLocale(storedLocale)
-  }
-
   const runtimeLocale = globalThis.chrome?.i18n?.getUILanguage?.()
   return normalizeLocale(runtimeLocale || globalThis.navigator?.language)
 }
@@ -67,6 +62,60 @@ export const i18n = createVueI18n({
   }
 })
 
+function readExtensionStorage (key) {
+  return new Promise((resolve) => {
+    if (!globalThis.chrome?.storage?.local) {
+      resolve(null)
+      return
+    }
+
+    globalThis.chrome.storage.local.get(key, (result) => {
+      if (globalThis.chrome.runtime?.lastError) {
+        console.warn('Failed to read extension storage:', globalThis.chrome.runtime.lastError.message)
+        resolve(null)
+        return
+      }
+
+      resolve(result?.[key] || null)
+    })
+  })
+}
+
+function writeExtensionStorage (key, value) {
+  return new Promise((resolve) => {
+    if (!globalThis.chrome?.storage?.local) {
+      resolve(false)
+      return
+    }
+
+    globalThis.chrome.storage.local.set({ [key]: value }, () => {
+      if (globalThis.chrome.runtime?.lastError) {
+        console.warn('Failed to write extension storage:', globalThis.chrome.runtime.lastError.message)
+        resolve(false)
+        return
+      }
+
+      resolve(true)
+    })
+  })
+}
+
+export async function hydrateLocaleFromStorage () {
+  const storedLocale = await readExtensionStorage(STORAGE_KEY)
+  if (storedLocale) {
+    i18n.global.locale.value = normalizeLocale(storedLocale)
+    return
+  }
+
+  const legacyLocale = globalThis.localStorage?.getItem(STORAGE_KEY)
+  if (legacyLocale) {
+    const nextLocale = normalizeLocale(legacyLocale)
+    i18n.global.locale.value = nextLocale
+    await writeExtensionStorage(STORAGE_KEY, nextLocale)
+    globalThis.localStorage?.removeItem(STORAGE_KEY)
+  }
+}
+
 export function installI18n (app) {
   app.use(i18n)
   return i18n
@@ -78,7 +127,7 @@ export function useI18n () {
   const setLocale = (locale) => {
     const nextLocale = normalizeLocale(locale)
     composer.locale.value = nextLocale
-    globalThis.localStorage?.setItem(STORAGE_KEY, nextLocale)
+    writeExtensionStorage(STORAGE_KEY, nextLocale)
   }
 
   return {

@@ -560,11 +560,14 @@ async function setBatchStorage (storageType, data, clearFirst = false) {
         // 先清空（如果需要）
         if (shouldClearFirst) {
           try {
+            const backupKeys = []
             for (let i = 0; i < storage.length; i++) {
               const backupKey = storage.key(i)
-              if (backupKey !== null) {
-                backupData[backupKey] = storage.getItem(backupKey)
-              }
+              if (backupKey !== null) backupKeys.push(backupKey)
+            }
+
+            for (const backupKey of backupKeys) {
+              backupData[backupKey] = storage.getItem(backupKey)
             }
             storage.clear()
           } catch (e) {
@@ -1236,7 +1239,7 @@ export const StorageManager = {
       let searchPattern
       if (useRegex) {
         try {
-          searchPattern = new RegExp(searchTerm, caseSensitive ? 'g' : 'gi')
+          searchPattern = new RegExp(searchTerm, caseSensitive ? '' : 'i')
         } catch (e) {
           throw new Error(`无效的正则表达式: ${searchTerm}`)
         }
@@ -1245,9 +1248,12 @@ export const StorageManager = {
       }
 
       return items.filter(item => {
-        const keyToSearch = caseSensitive ? item.key || item.name : (item.key || item.name).toLowerCase()
-        const valueToSearch = searchInValues ?
-          (caseSensitive ? item.value : item.value.toLowerCase()) : ''
+        const rawKey = String(item.key || item.name || '')
+        const rawValue = String(item.value ?? '')
+        const keyToSearch = caseSensitive ? rawKey : rawKey.toLowerCase()
+        const valueToSearch = searchInValues
+          ? (caseSensitive ? rawValue : rawValue.toLowerCase())
+          : ''
 
         if (useRegex) {
           return searchPattern.test(keyToSearch) || (searchInValues && searchPattern.test(valueToSearch))

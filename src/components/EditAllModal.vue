@@ -79,19 +79,12 @@
 </template>
 
 <script setup>
-import { computed, watch, ref, Suspense, defineAsyncComponent } from 'vue'
+import { computed, watch, ref, Suspense } from 'vue'
 import { useJsonEditor } from '../composables/useJsonEditor.js'
 import { useIcons } from '../composables/useIcons.js'
 import { deepClone } from '../utils/performance.js'
 import { UI_CONFIG, TOOLTIP_CONFIG } from '../constants/index.js'
-
-// 动态导入 JsonEditorVue3 以减少初始包大小
-const JsonEditorVue3 = defineAsyncComponent({
-  loader: () => import('json-editor-vue3'),
-  loadingComponent: NSpin,
-  delay: 200,
-  timeout: 10000
-})
+import { JsonEditorVue3 } from './JsonEditorAsync.js'
 
 const props = defineProps({
   show: {

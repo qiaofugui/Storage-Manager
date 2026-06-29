@@ -19,6 +19,7 @@ export function useStorage () {
     sessionStorage: 0,
     cookie: 0
   })
+  let refreshRequestId = 0
 
   // 计算属性
   const filteredData = computed(() => {
@@ -49,12 +50,12 @@ export function useStorage () {
     }
   }
 
-  const refreshCounts = async () => {
+  const refreshCounts = async (knownItemsByType = {}) => {
     const counts = { ...storageCounts.value }
 
     await Promise.all(STORAGE_TYPE_LIST.map(async (storageType) => {
       try {
-        const items = await getAll(storageType)
+        const items = knownItemsByType[storageType] || await getAll(storageType)
         counts[storageType] = items.length
       } catch (error) {
         console.error(`刷新 ${storageType} 数量失败:`, error)
@@ -66,22 +67,34 @@ export function useStorage () {
 
   // 刷新数据 - 减少不必要的刷新成功消息
   const refreshData = async (showMessage = false, refreshAllCounts = false) => {
+    const requestId = ++refreshRequestId
     loading.value = true
     try {
+      const requestedTab = activeTab.value
       const storageData = await getAll(activeTab.value)
+
+      if (requestId !== refreshRequestId || requestedTab !== activeTab.value) {
+        return
+      }
+
       data.value = storageData
-      updateStorageCount(activeTab.value, storageData)
+      updateStorageCount(requestedTab, storageData)
       if (refreshAllCounts) {
-        await refreshCounts()
+        await refreshCounts({ [requestedTab]: storageData })
       }
       if (showMessage) {
         message.success('数据已刷新')
       }
     } catch (error) {
+      if (requestId !== refreshRequestId) {
+        return
+      }
       console.error('刷新数据失败:', error)
       message.error(`刷新失败: ${error.message}`)
     } finally {
-      loading.value = false
+      if (requestId === refreshRequestId) {
+        loading.value = false
+      }
     }
   }
 

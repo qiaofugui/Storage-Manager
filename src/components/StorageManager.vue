@@ -67,7 +67,6 @@ const {
   storageCounts,
   filteredData,
   refreshData,
-  refreshCounts,
   debouncedRefresh,
   deleteItem,
   clearAll,
@@ -137,7 +136,6 @@ const closeModal = () => {
 }
 
 onMounted(async () => {
-  await refreshData()
-  await refreshCounts()
+  await refreshData(false, true)
 })
 </script>

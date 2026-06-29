@@ -1,13 +1,13 @@
 # Storage Manager - 浏览器存储管理扩展
 
-一个用于管理当前网页 `localStorage`、`sessionStorage` 和 Cookie 数据的浏览器扩展。项目基于 Vue 3、Vite、Tailwind CSS 和 Naive UI 构建，提供查看、搜索、新增、编辑、删除、复制、粘贴和批量编辑能力。
+一个用于管理当前网页 `localStorage`、`sessionStorage` 和 `Cookie` 数据的浏览器扩展。项目基于 Vue 3、Vite、Tailwind CSS 和 Naive UI 构建，提供查看、搜索、新增、编辑、删除、复制、粘贴和批量编辑能力。
 
 ## 主要特性
 
 ### 多类型存储管理
 - `localStorage` 管理：查看和维护当前页面的持久化 Web Storage 数据
 - `sessionStorage` 管理：查看和维护当前页面的会话级 Web Storage 数据
-- Cookie 管理：查看、编辑、删除当前页面可访问的 Cookie，并保留域名、路径、SameSite、Secure、HttpOnly、Store ID、Partition Key 等关键属性
+- `Cookie` 管理：查看、编辑、删除当前页面可访问的 `Cookie`，并保留域名、路径、SameSite、Secure、HttpOnly、Store ID、Partition Key 等关键属性
 - 计数标签页：快速切换不同存储类型，并显示当前数据数量
 
 ### 数据操作
@@ -15,7 +15,7 @@
 - 按键名或值搜索过滤
 - 新增、编辑、删除单条数据
 - 清空当前存储类型
-- 一键清除当前页面的 `localStorage`、`sessionStorage` 和 Cookie
+- 一键清除当前页面的 `localStorage`、`sessionStorage` 和 `Cookie`
 
 ### JSON 与批量编辑
 - 使用 JSON 编辑器编辑单个值或完整数据集
@@ -23,6 +23,7 @@
 - 简单字符串、数字、布尔值和 JSON 对象/数组均可保存
 - 批量编辑保存前会验证数据格式
 - 批量覆盖写入失败时会尝试恢复原始数据，降低半写入导致的数据丢失风险
+- 批量编辑保存 `{}` 时会清空当前存储类型，符合覆盖式编辑语义
 
 ### 剪贴板导入导出
 - 复制单个数据项为 JSON 对象
@@ -168,6 +169,8 @@ src/
 
 ```bash
 npm run dev            # 启动 Vite 开发服务
+npm run check          # 构建检查
+npm run lint           # 当前等同构建检查
 npm run build          # 构建扩展
 npm run preview        # 预览构建产物
 npm run build:analyze  # 构建并分析包体积

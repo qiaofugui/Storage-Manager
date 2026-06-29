@@ -68,11 +68,12 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, nextTick, Suspense, defineAsyncComponent } from 'vue'
+import { computed, ref, watch, nextTick, Suspense } from 'vue'
 import { useJsonEditor } from '../composables/useJsonEditor.js'
 import { useIcons } from '../composables/useIcons.js'
 import { tryJsonParse } from '../utils/performance.js'
 import { UI_CONFIG, TOOLTIP_CONFIG } from '../constants/index.js'
+import { JsonEditorVue3 } from './JsonEditorAsync.js'
 
 const props = defineProps({
   show: {
@@ -90,14 +91,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:show', 'save', 'close'])
-
-// 动态导入 JsonEditorVue3 以减少初始包大小
-const JsonEditorVue3 = defineAsyncComponent({
-  loader: () => import('json-editor-vue3'),
-  loadingComponent: NSpin,
-  delay: 200,
-  timeout: 10000
-})
 
 // 使用 composables
 const {

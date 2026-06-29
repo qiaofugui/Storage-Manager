@@ -86,11 +86,11 @@ const columns = computed(() => [
     },
     render: (row) => {
       const maxLength = 100
-      const value = row.value
+      const value = String(row.value ?? '')
       if (value && value.length > maxLength) {
         return value.substring(0, maxLength) + '...'
       }
-      return value || ''
+      return value
     }
   },
   {

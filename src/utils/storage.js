@@ -203,6 +203,21 @@ function cookieIdentityMatches (cookie, identity) {
   return true
 }
 
+async function mapWithConcurrency (items, limit, mapper) {
+  const results = new Array(items.length)
+  let nextIndex = 0
+
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (nextIndex < items.length) {
+      const currentIndex = nextIndex++
+      results[currentIndex] = await mapper(items[currentIndex], currentIndex)
+    }
+  })
+
+  await Promise.all(workers)
+  return results
+}
+
 /**
  * 检查Chrome API可用性
  */
@@ -523,6 +538,16 @@ async function setBatchStorage (storageType, data, clearFirst = false) {
 
   const entries = Object.entries(data)
   if (entries.length === 0) {
+    if (clearFirst) {
+      const clearResult = await clearStorage(storageType)
+      return {
+        success: 0,
+        total: 0,
+        errors: [],
+        clearedCount: clearResult.clearedCount || 0
+      }
+    }
+
     return { success: 0, total: 0, errors: [] }
   }
 
@@ -690,57 +715,61 @@ function validateCookieData (name, value) {
   }
 }
 
-async function getCurrentCookies () {
-  try {
-    const tab = await getActiveTab()
+function formatCookieForEditor (cookie) {
+  return {
+    key: createCookieEditorKey(cookie),
+    name: cookie.name,
+    value: cookie.value,
+    domain: cookie.domain,
+    path: cookie.path,
+    secure: cookie.secure,
+    httpOnly: cookie.httpOnly,
+    hostOnly: cookie.hostOnly,
+    sameSite: cookie.sameSite,
+    expirationDate: cookie.expirationDate,
+    session: !cookie.expirationDate, // 会话Cookie标识
+    storeId: cookie.storeId, // 添加存储ID
+    partitionKey: cookie.partitionKey,
+    type: 'cookie'
+  }
+}
 
-    // 检查必要的权限
-    if (!chrome.cookies) {
-      throw new Error('缺少 Cookie 权限') // 确保 manifest.json 中包含 "cookies" 权限
-    }
+async function getCookiesByUrl (url) {
+  if (!chrome.cookies) {
+    throw new Error('缺少 Cookie 权限') // 确保 manifest.json 中包含 "cookies" 权限
+  }
 
-    const cookies = await new Promise((resolve, reject) => {
-      const timeoutId = setTimeout(() => {
-        reject(new Error('获取 Cookie 超时'))
-      }, 5000)
+  return await new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(new Error('获取 Cookie 超时'))
+    }, 5000)
 
-      chrome.cookies.getAll({
-        url: tab.url // 使用完整 URL 而不是domain
-      }, (cookies) => {
-        clearTimeout(timeoutId)
+    chrome.cookies.getAll({
+      url
+    }, (cookies) => {
+      clearTimeout(timeoutId)
 
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message))
-        } else {
-          resolve(cookies || [])
-        }
-      })
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message))
+      } else {
+        resolve(cookies || [])
+      }
     })
+  })
+}
 
-    const result = cookies.map(cookie => ({
-      key: createCookieEditorKey(cookie),
-      name: cookie.name,
-      value: cookie.value,
-      domain: cookie.domain,
-      path: cookie.path,
-      secure: cookie.secure,
-      httpOnly: cookie.httpOnly,
-      hostOnly: cookie.hostOnly,
-      sameSite: cookie.sameSite,
-      expirationDate: cookie.expirationDate,
-      session: !cookie.expirationDate, // 会话Cookie标识
-      storeId: cookie.storeId, // 添加存储ID
-      partitionKey: cookie.partitionKey,
-      type: 'cookie'
-    }))
+async function getCurrentCookies (currentUrl = null) {
+  try {
+    const url = currentUrl || (await getActiveTab()).url
+    const cookies = await getCookiesByUrl(url)
 
-    return result
+    return cookies.map(formatCookieForEditor)
   } catch (error) {
     throw new Error(`获取 Cookie 失败: ${error.message}`)
   }
 }
 
-async function setCookieItem (name, value, options = {}) {
+async function setCookieItem (name, value, options = {}, currentUrl = null) {
   validateCookieData(name, value)
 
   if (!chrome.cookies) {
@@ -748,11 +777,11 @@ async function setCookieItem (name, value, options = {}) {
   }
 
   try {
-    const tab = await getActiveTab()
-    const url = createUrl(tab.url)
+    const pageUrlText = currentUrl || (await getActiveTab()).url
+    const url = createUrl(pageUrlText)
 
     const cookieDetails = {
-      url: createCookieUrl(options, tab.url),
+      url: createCookieUrl(options, pageUrlText),
       name: name,
       value: String(value), // 确保是字符串
       path: normalizeCookiePath(options.path),
@@ -832,7 +861,7 @@ async function setCookieItem (name, value, options = {}) {
   }
 }
 
-async function removeCookieItem (item) {
+async function removeCookieItem (item, currentUrl = null) {
   const cookie = normalizeCookieIdentity(item)
   const name = cookie.name
   validateCookieName(name)
@@ -842,9 +871,9 @@ async function removeCookieItem (item) {
   }
 
   try {
-    const tab = await getActiveTab()
+    const pageUrlText = currentUrl || (await getActiveTab()).url
     const removeDetails = {
-      url: createCookieUrl(cookie, tab.url),
+      url: createCookieUrl(cookie, pageUrlText),
       name: name
     }
 
@@ -878,28 +907,27 @@ async function removeCookieItem (item) {
   }
 }
 
-async function clearCookies () {
+async function clearCookies (currentCookies = null, currentUrl = null) {
   if (!chrome.cookies) {
     throw new Error('缺少 Cookie 权限')
   }
 
   try {
-    const cookies = await getCurrentCookies()
+    const pageUrlText = currentUrl || (await getActiveTab()).url
+    const cookies = currentCookies || await getCurrentCookies(pageUrlText)
 
     if (cookies.length === 0) {
       return { clearedCount: 0, total: 0, errors: [] }
     }
 
-    const removePromises = cookies.map(async cookie => {
+    const results = await mapWithConcurrency(cookies, 6, async cookie => {
       try {
-        await removeCookieItem(cookie)
+        await removeCookieItem(cookie, pageUrlText)
         return { success: true, name: cookie.name }
       } catch (error) {
         return { success: false, name: cookie.name, error: error.message }
       }
     })
-
-    const results = await Promise.all(removePromises)
     const successCount = results.filter(r => r.success).length
     const errors = results.filter(r => !r.success)
 
@@ -924,6 +952,16 @@ async function setBatchCookies (data, clearFirst = false) {
 
   const entries = Object.entries(data)
   if (entries.length === 0) {
+    if (clearFirst) {
+      const clearResult = await clearCookies()
+      return {
+        success: 0,
+        total: 0,
+        errors: clearResult.errors || [],
+        clearedCount: clearResult.clearedCount || 0
+      }
+    }
+
     return { success: 0, total: 0, errors: [], clearedCount: 0 }
   }
 
@@ -938,6 +976,7 @@ async function setBatchCookies (data, clearFirst = false) {
   })
 
   try {
+    const pageUrlText = (await getActiveTab()).url
     let clearedCount = 0
     const errors = []
     let backupCookies = []
@@ -947,8 +986,8 @@ async function setBatchCookies (data, clearFirst = false) {
     // 如果需要先清空
     if (clearFirst) {
       try {
-        backupCookies = await getCurrentCookies()
-        const clearResult = await clearCookies()
+        backupCookies = await getCurrentCookies(pageUrlText)
+        const clearResult = await clearCookies(backupCookies, pageUrlText)
         clearedCount = clearResult.clearedCount
         if (clearResult.errors && clearResult.errors.length > 0) {
           errors.push(...clearResult.errors)
@@ -959,7 +998,7 @@ async function setBatchCookies (data, clearFirst = false) {
     }
 
     const total = entries.length
-    const setPromises = entries.map(async ([key, value]) => {
+    const results = await mapWithConcurrency(entries, 6, async ([key, value]) => {
       try {
         // 处理不同的value格式
         let cookieName = key
@@ -977,14 +1016,12 @@ async function setBatchCookies (data, clearFirst = false) {
           cookieValue = typeof value === 'string' ? value : JSON.stringify(value)
         }
 
-        await setCookieItem(cookieName, cookieValue, options)
+        await setCookieItem(cookieName, cookieValue, options, pageUrlText)
         return { success: true, key: cookieName }
       } catch (e) {
         return { success: false, key, error: e.message }
       }
     })
-
-    const results = await Promise.all(setPromises)
     const successCount = results.filter(r => r.success).length
     const failedResults = results.filter(r => !r.success)
 
@@ -994,7 +1031,7 @@ async function setBatchCookies (data, clearFirst = false) {
 
     if (clearFirst && failedResults.length > 0) {
       try {
-        await clearCookies()
+        await clearCookies(null, pageUrlText)
 
         for (const cookie of backupCookies) {
           const {
@@ -1023,7 +1060,7 @@ async function setBatchCookies (data, clearFirst = false) {
             expirationDate,
             storeId,
             partitionKey
-          })
+          }, pageUrlText)
         }
 
         rollbackPerformed = true

@@ -1,6 +1,6 @@
 {
   "name": "manage-localstorage-extension",
-  "version": "1.0.2",
+  "version": "1.2.0",
   "description": "Browser extension to manage localStorage",
   "license": "Apache-2.0",
   "type": "module",
@@ -15,7 +15,8 @@
   "dependencies": {
     "json-editor-vue3": "^1.1.1",
     "naive-ui": "^2.38.0",
-    "vue": "^3.4.0"
+    "vue": "^3.4.0",
+    "vue-i18n": "^9.14.0"
   },
   "devDependencies": {
     "@originjs/vite-plugin-commonjs": "^1.0.3",

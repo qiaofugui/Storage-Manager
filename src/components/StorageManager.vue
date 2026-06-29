@@ -13,7 +13,7 @@
 
         <!-- 搜索框 -->
         <div class="pl-4 pb-2 flex-grow-[3]">
-          <n-input :value="searchQuery" @update:value="debouncedSearch" placeholder="搜索键名或值..." clearable class="w-full">
+          <n-input :value="searchQuery" @update:value="debouncedSearch" :placeholder="t('placeholderSearch')" clearable class="w-full">
             <template #prefix>
               <n-icon>
                 <SearchIcon />
@@ -49,6 +49,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useStorage } from '../composables/useStorage.js'
 import { useClipboard } from '../composables/useClipboard.js'
 import { useIcons } from '../composables/useIcons.js'
+import { useI18n } from '../i18n/index.js'
 import Header from './Header.vue'
 import StorageTabs from './StorageTabs.vue'
 import StorageTable from './StorageTable.vue'
@@ -57,6 +58,7 @@ import EditAllModal from './EditAllModal.vue'
 
 // 使用统一的图标系统
 const { SearchIcon } = useIcons()
+const { t } = useI18n()
 
 // 使用存储管理组合式API
 const {

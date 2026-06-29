@@ -4,5 +4,290 @@
   },
   "name": {
     "message": "Storage Manager"
+  },
+  "languageSelect": {
+    "message": "Switch language"
+  },
+  "languageZhCn": {
+    "message": "中文"
+  },
+  "languageEn": {
+    "message": "English"
+  },
+  "languageToggleTo": {
+    "message": "Switch to {language}"
+  },
+  "actionAdd": {
+    "message": "Add item"
+  },
+  "actionBatchEdit": {
+    "message": "Batch edit"
+  },
+  "actionPaste": {
+    "message": "Paste data"
+  },
+  "actionRefresh": {
+    "message": "Refresh data"
+  },
+  "actionClearCurrentType": {
+    "message": "Clear current type"
+  },
+  "actionClearPage": {
+    "message": "Clear page data"
+  },
+  "actionAboutGitHub": {
+    "message": "About"
+  },
+  "buttonCancel": {
+    "message": "Cancel"
+  },
+  "buttonClear": {
+    "message": "Clear"
+  },
+  "buttonClearAll": {
+    "message": "Clear all"
+  },
+  "buttonClose": {
+    "message": "Close"
+  },
+  "buttonDelete": {
+    "message": "Delete"
+  },
+  "buttonFormat": {
+    "message": "Format"
+  },
+  "buttonReset": {
+    "message": "Reset"
+  },
+  "buttonSave": {
+    "message": "Save"
+  },
+  "confirmClearCurrentType": {
+    "message": "Clear all data for the current storage type? This cannot be undone."
+  },
+  "confirmClearPage": {
+    "message": "Clear localStorage, sessionStorage, and cookies for this page? This cannot be undone."
+  },
+  "confirmDeleteItem": {
+    "message": "Delete data item \"{key}\"?"
+  },
+  "confirmOverwriteAll": {
+    "message": "Overwrite all {storageType} data? This cannot be undone."
+  },
+  "fieldKey": {
+    "message": "Key: "
+  },
+  "fieldValue": {
+    "message": "Value"
+  },
+  "modalAddTitle": {
+    "message": "Add item"
+  },
+  "modalEditTitle": {
+    "message": "Edit item"
+  },
+  "modalBatchEditTitle": {
+    "message": "Batch edit {storageType}"
+  },
+  "modalBatchEditHelp": {
+    "message": "Edit {storageType} data. Saving will overwrite all current {storageType} data."
+  },
+  "placeholderKey": {
+    "message": "Enter a key"
+  },
+  "placeholderSearch": {
+    "message": "Search keys or values..."
+  },
+  "tableActions": {
+    "message": "Actions"
+  },
+  "tableIndex": {
+    "message": "#"
+  },
+  "tableKey": {
+    "message": "Key"
+  },
+  "tablePageTotal": {
+    "message": "{count} total"
+  },
+  "tableValue": {
+    "message": "Value"
+  },
+  "tooltipCopyItem": {
+    "message": "Copy item"
+  },
+  "tooltipDeleteItem": {
+    "message": "Delete item"
+  },
+  "tooltipEditItem": {
+    "message": "Edit item"
+  },
+  "tooltipReloadCurrentData": {
+    "message": "Reload current data"
+  },
+  "messageAllPageDataCleared": {
+    "message": "Cleared all data for the current page"
+  },
+  "messageBatchSaveFailedRollback": {
+    "message": "Batch save failed. Original data has been restored."
+  },
+  "messageBatchSavePartial": {
+    "message": "Partially saved: {success}/{total} items"
+  },
+  "messageBatchSaveSuccess": {
+    "message": "Batch save complete. Saved {count} items."
+  },
+  "messageClipboardEmpty": {
+    "message": "Clipboard is empty. Copy some JSON data first."
+  },
+  "messageClipboardNotSupported": {
+    "message": "Your browser does not support the Clipboard API. Please copy data manually."
+  },
+  "messageClearFailed": {
+    "message": "Clear failed: {message}"
+  },
+  "messageClearPartialFailed": {
+    "message": "Some data could not be cleared: {types}"
+  },
+  "messageClearSuccess": {
+    "message": "Cleared"
+  },
+  "messageCopiedGeneric": {
+    "message": "Copied to clipboard"
+  },
+  "messageCopiedItem": {
+    "message": "Copied data item \"{key}\" to clipboard"
+  },
+  "messageCopyFailed": {
+    "message": "Copy failed"
+  },
+  "messageDataEmptyValid": {
+    "message": "Data is empty and valid"
+  },
+  "messageDataFormatCorrect": {
+    "message": "Data format is valid"
+  },
+  "messageDeleteFailed": {
+    "message": "Delete failed: {message}"
+  },
+  "messageDeleteSuccess": {
+    "message": "Deleted"
+  },
+  "messageDuplicateKeys": {
+    "message": "Duplicate keys found: \"{keys}\". These keys already exist in {storageType}. Adjust the data before pasting, or use batch edit to overwrite existing data."
+  },
+  "messageFormatFailed": {
+    "message": "Invalid JSON format. Cannot format."
+  },
+  "messageFormatSuccess": {
+    "message": "Formatted"
+  },
+  "messageInvalidClipboardJson": {
+    "message": "Invalid JSON. Check the clipboard contents."
+  },
+  "messageInvalidDataFormat": {
+    "message": "Invalid data format. Check the data and try again."
+  },
+  "messageInvalidJsonCheckInput": {
+    "message": "Invalid JSON. Check your input."
+  },
+  "messageInvalidJsonData": {
+    "message": "Invalid JSON: enter valid JSON data."
+  },
+  "messageInvalidJsonEditor": {
+    "message": "Invalid JSON. Check the editor error in the lower-right corner."
+  },
+  "messageInvalidJsonObject": {
+    "message": "Pasted data must be a JSON object, for example: {example}"
+  },
+  "messageJsonFormatCorrect": {
+    "message": "JSON format is valid"
+  },
+  "messageJsonFormatSuccess": {
+    "message": "JSON formatted"
+  },
+  "messageJsonInvalidCannotFormat": {
+    "message": "Invalid data format. Cannot format."
+  },
+  "messageJsonObjectEmpty": {
+    "message": "JSON object is empty. Nothing to paste."
+  },
+  "messageKeyExists": {
+    "message": "Key \"{key}\" already exists. Edit the existing item or choose another key."
+  },
+  "messageKeyRequired": {
+    "message": "Key is required"
+  },
+  "messageLoadDataFailed": {
+    "message": "Failed to load data: {message}"
+  },
+  "messageNoClipboardAccess": {
+    "message": "No clipboard permission. Allow clipboard access or reinstall the extension."
+  },
+  "messageNoFormatData": {
+    "message": "No data to format"
+  },
+  "messagePasteFailed": {
+    "message": "Paste failed: {message}"
+  },
+  "messagePastePartial": {
+    "message": "Pasted {success}/{total} items. Some items may have failed."
+  },
+  "messagePasteSuccess": {
+    "message": "Pasted {count} new items"
+  },
+  "messageReadClipboard": {
+    "message": "Reading clipboard data..."
+  },
+  "messageRefreshFailed": {
+    "message": "Refresh failed: {message}"
+  },
+  "messageRefreshSuccess": {
+    "message": "Data refreshed"
+  },
+  "messageReloadedData": {
+    "message": "Reloaded {count} {storageType} items"
+  },
+  "messageResetForm": {
+    "message": "Form reset"
+  },
+  "messageResetOriginal": {
+    "message": "Reset to original value"
+  },
+  "messageSaveAdded": {
+    "message": "Added"
+  },
+  "messageSaveEdited": {
+    "message": "Updated"
+  },
+  "messageSaveFailed": {
+    "message": "Save failed: {message}"
+  },
+  "messageSaveFailedInvalidJson": {
+    "message": "Save failed: data is not valid JSON"
+  },
+  "messageSaveFailedInvalidData": {
+    "message": "Save failed: invalid data format - {message}"
+  },
+  "messageSavedAsString": {
+    "message": "Saved input as a string value"
+  },
+  "messageStorageEmpty": {
+    "message": "Current {storageType} is empty"
+  },
+  "messageValueSavedAsStringFailed": {
+    "message": "Invalid JSON. Check the editor error in the lower-right corner."
+  },
+  "validationCookieNameEmpty": {
+    "message": "A Cookie name is empty"
+  },
+  "validationEmptyKey": {
+    "message": "A key is empty"
+  },
+  "validationKeyValueNotSerializable": {
+    "message": "Value for key \"{key}\" cannot be serialized as JSON: {message}"
+  },
+  "validationSaveFailed": {
+    "message": "Data validation failed: {message}"
   }
 }

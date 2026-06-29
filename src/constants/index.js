@@ -11,6 +11,10 @@ export const STORAGE_TYPE_LIST = [
   STORAGE_TYPES.COOKIE
 ]
 
+export const APP_LINKS = {
+  GITHUB: 'https://github.com/qiaofugui/Storage-Manager'
+}
+
 export const PAGINATION_CONFIG = {
   DEFAULT_PAGE_SIZE: 20,
   PAGE_SIZES: [10, 20, 50],

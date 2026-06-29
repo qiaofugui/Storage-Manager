@@ -2,11 +2,13 @@ import { useMessageManager } from './useMessageManager.js'
 import { StorageManager } from '../utils/storage.js'
 import { tryJsonParse } from '../utils/performance.js'
 import { MESSAGE_CONFIG } from '../constants/index.js'
+import { useI18n } from '../i18n/index.js'
 
 const { getAll, setBatch } = StorageManager
 
 export function useClipboard (activeTab, refreshData) {
   const { message } = useMessageManager()
+  const { t } = useI18n()
 
   const createCookieDuplicateKey = (key, value) => {
     if (value && typeof value === 'object') {
@@ -26,16 +28,16 @@ export function useClipboard (activeTab, refreshData) {
     try {
       // 检查剪贴板API是否可用
       if (!navigator.clipboard) {
-        message.error('您的浏览器不支持剪贴板API，请手动复制数据')
+        message.error(t('messageClipboardNotSupported'))
         return
       }
 
-      message.info('正在读取剪贴板数据...')
+      message.info(t('messageReadClipboard'))
 
       const text = await navigator.clipboard.readText()
 
       if (!text || text.trim() === '') {
-        message.warning('剪贴板为空，请先复制一些JSON数据')
+        message.warning(t('messageClipboardEmpty'))
         return
       }
 
@@ -43,19 +45,19 @@ export function useClipboard (activeTab, refreshData) {
       const parseResult = tryJsonParse(text)
 
       if (!parseResult.success) {
-        message.error('JSON格式错误，请检查剪贴板内容')
+        message.error(t('messageInvalidClipboardJson'))
         return
       }
 
       const jsonData = parseResult.value
       if (typeof jsonData !== 'object' || jsonData === null || Array.isArray(jsonData)) {
-        message.error('粘贴的数据必须是JSON对象格式，例如: {"key": "value"}')
+        message.error(t('messageInvalidJsonObject', { example: '{"key": "value"}' }))
         return
       }
 
       const dataCount = Object.keys(jsonData).length
       if (dataCount === 0) {
-        message.warning('JSON对象为空，没有数据可以粘贴')
+        message.warning(t('messageJsonObjectEmpty'))
         return
       }
 
@@ -97,7 +99,7 @@ export function useClipboard (activeTab, refreshData) {
       if (duplicateKeys.length > 0) {
         const duplicateList = duplicateKeys.join('", "')
         message.error(
-          `发现重复的键名: "${duplicateList}"。这些键已存在于${activeTab.value}中，请手动调整数据后再粘贴，或使用批量编辑功能覆盖现有数据。`,
+          t('messageDuplicateKeys', { keys: duplicateList, storageType: activeTab.value }),
           {
             closable: true,
             duration: MESSAGE_CONFIG.ERROR_DURATION + 1000
@@ -111,25 +113,25 @@ export function useClipboard (activeTab, refreshData) {
       await refreshData()
 
       if (result.success === result.total) {
-        message.success(`成功粘贴 ${result.success} 条新数据`)
+        message.success(t('messagePasteSuccess', { count: result.success }))
       } else {
-        message.warning(`粘贴了 ${result.success}/${result.total} 条数据，部分数据可能失败`)
+        message.warning(t('messagePastePartial', { success: result.success, total: result.total }))
       }
 
     } catch (error) {
       console.error('粘贴数据失败:', error)
-      message.error(`粘贴失败: ${error.message}`)
+      message.error(t('messagePasteFailed', { message: error.message }))
     }
   }
 
   // 处理粘贴错误
   const handlePasteError = (error) => {
     if (error.name === 'NotAllowedError') {
-      message.error('没有剪贴板访问权限，请允许访问剪贴板或重新安装扩展')
+      message.error(t('messageNoClipboardAccess'))
     } else if (error.name === 'NotFoundError') {
-      message.error('剪贴板为空或无法访问')
+      message.error(t('messageClipboardEmpty'))
     } else {
-      message.error(`粘贴失败: ${error.message || '未知错误'}`)
+      message.error(t('messagePasteFailed', { message: error.message || 'Unknown error' }))
     }
   }
 

@@ -3,6 +3,291 @@
     "message": "轻松管理 localStorage、sessionStorage 和 Cookie"
   },
   "name": {
-    "message": "存储管理器"
+    "message": "Storage Manager"
+  },
+  "languageSelect": {
+    "message": "切换语言"
+  },
+  "languageZhCn": {
+    "message": "中文"
+  },
+  "languageEn": {
+    "message": "English"
+  },
+  "languageToggleTo": {
+    "message": "切换到 {language}"
+  },
+  "actionAdd": {
+    "message": "新增数据项"
+  },
+  "actionBatchEdit": {
+    "message": "批量编辑"
+  },
+  "actionPaste": {
+    "message": "粘贴数据"
+  },
+  "actionRefresh": {
+    "message": "刷新数据"
+  },
+  "actionClearCurrentType": {
+    "message": "清除当前类型数据"
+  },
+  "actionClearPage": {
+    "message": "清除页面全部数据"
+  },
+  "actionAboutGitHub": {
+    "message": "关于"
+  },
+  "buttonCancel": {
+    "message": "取消"
+  },
+  "buttonClear": {
+    "message": "清除"
+  },
+  "buttonClearAll": {
+    "message": "全部清除"
+  },
+  "buttonClose": {
+    "message": "关闭"
+  },
+  "buttonDelete": {
+    "message": "删除"
+  },
+  "buttonFormat": {
+    "message": "格式化"
+  },
+  "buttonReset": {
+    "message": "重置"
+  },
+  "buttonSave": {
+    "message": "保存"
+  },
+  "confirmClearCurrentType": {
+    "message": "确定要清除当前类型的所有数据吗？此操作不可撤销。"
+  },
+  "confirmClearPage": {
+    "message": "确定要清除页面的 localStorage、sessionStorage 和 Cookie 吗？此操作不可撤销。"
+  },
+  "confirmDeleteItem": {
+    "message": "确定要删除数据项 \"{key}\" 吗？"
+  },
+  "confirmOverwriteAll": {
+    "message": "确定要覆盖所有 {storageType} 数据吗？此操作不可撤销。"
+  },
+  "fieldKey": {
+    "message": "键："
+  },
+  "fieldValue": {
+    "message": "值"
+  },
+  "modalAddTitle": {
+    "message": "新增数据项"
+  },
+  "modalEditTitle": {
+    "message": "编辑数据项"
+  },
+  "modalBatchEditTitle": {
+    "message": "批量编辑 {storageType}"
+  },
+  "modalBatchEditHelp": {
+    "message": "请编辑 {storageType} 数据。保存后将覆盖当前所有 {storageType} 数据。"
+  },
+  "placeholderKey": {
+    "message": "请输入键名"
+  },
+  "placeholderSearch": {
+    "message": "搜索键名或值..."
+  },
+  "tableActions": {
+    "message": "操作"
+  },
+  "tableIndex": {
+    "message": "序号"
+  },
+  "tableKey": {
+    "message": "键"
+  },
+  "tablePageTotal": {
+    "message": "共 {count} 条"
+  },
+  "tableValue": {
+    "message": "值"
+  },
+  "tooltipCopyItem": {
+    "message": "复制数据项"
+  },
+  "tooltipDeleteItem": {
+    "message": "删除数据项"
+  },
+  "tooltipEditItem": {
+    "message": "编辑数据项"
+  },
+  "tooltipReloadCurrentData": {
+    "message": "重新加载当前数据"
+  },
+  "messageAllPageDataCleared": {
+    "message": "已清除当前页面全部数据"
+  },
+  "messageBatchSaveFailedRollback": {
+    "message": "批量保存失败，已恢复原始数据"
+  },
+  "messageBatchSavePartial": {
+    "message": "部分保存成功，成功 {success}/{total} 条"
+  },
+  "messageBatchSaveSuccess": {
+    "message": "批量保存成功，共保存 {count} 条数据"
+  },
+  "messageClipboardEmpty": {
+    "message": "剪贴板为空，请先复制一些 JSON 数据"
+  },
+  "messageClipboardNotSupported": {
+    "message": "您的浏览器不支持剪贴板 API，请手动复制数据"
+  },
+  "messageClearFailed": {
+    "message": "清除失败: {message}"
+  },
+  "messageClearPartialFailed": {
+    "message": "部分数据清除失败: {types}"
+  },
+  "messageClearSuccess": {
+    "message": "清除成功"
+  },
+  "messageCopiedGeneric": {
+    "message": "已复制到剪贴板"
+  },
+  "messageCopiedItem": {
+    "message": "已复制数据项 \"{key}\" 到剪贴板"
+  },
+  "messageCopyFailed": {
+    "message": "复制失败"
+  },
+  "messageDataEmptyValid": {
+    "message": "数据为空，格式正确"
+  },
+  "messageDataFormatCorrect": {
+    "message": "数据格式正确"
+  },
+  "messageDeleteFailed": {
+    "message": "删除失败: {message}"
+  },
+  "messageDeleteSuccess": {
+    "message": "删除成功"
+  },
+  "messageDuplicateKeys": {
+    "message": "发现重复的键名: \"{keys}\"。这些键已存在于 {storageType} 中，请手动调整数据后再粘贴，或使用批量编辑功能覆盖现有数据。"
+  },
+  "messageFormatFailed": {
+    "message": "JSON 格式不正确，无法格式化"
+  },
+  "messageFormatSuccess": {
+    "message": "格式化成功"
+  },
+  "messageInvalidClipboardJson": {
+    "message": "JSON 格式错误，请检查剪贴板内容"
+  },
+  "messageInvalidDataFormat": {
+    "message": "数据格式不正确，请检查后重试"
+  },
+  "messageInvalidJsonCheckInput": {
+    "message": "JSON 格式错误，请检查输入内容"
+  },
+  "messageInvalidJsonData": {
+    "message": "JSON 格式错误：请输入有效的 JSON 格式数据"
+  },
+  "messageInvalidJsonEditor": {
+    "message": "JSON 格式错误，请参考编辑器右下角的错误提示"
+  },
+  "messageInvalidJsonObject": {
+    "message": "粘贴的数据必须是 JSON 对象格式，例如: {example}"
+  },
+  "messageJsonFormatCorrect": {
+    "message": "JSON 格式正确"
+  },
+  "messageJsonFormatSuccess": {
+    "message": "JSON 格式化成功"
+  },
+  "messageJsonInvalidCannotFormat": {
+    "message": "数据格式不正确，无法格式化"
+  },
+  "messageJsonObjectEmpty": {
+    "message": "JSON 对象为空，没有数据可以粘贴"
+  },
+  "messageKeyExists": {
+    "message": "键名 \"{key}\" 已存在，请使用编辑功能修改现有数据项或更换键名"
+  },
+  "messageKeyRequired": {
+    "message": "键名不能为空"
+  },
+  "messageLoadDataFailed": {
+    "message": "加载数据失败: {message}"
+  },
+  "messageNoClipboardAccess": {
+    "message": "没有剪贴板访问权限，请允许访问剪贴板或重新安装扩展"
+  },
+  "messageNoFormatData": {
+    "message": "没有可格式化的数据"
+  },
+  "messagePasteFailed": {
+    "message": "粘贴失败: {message}"
+  },
+  "messagePastePartial": {
+    "message": "粘贴了 {success}/{total} 条数据，部分数据可能失败"
+  },
+  "messagePasteSuccess": {
+    "message": "成功粘贴 {count} 条新数据"
+  },
+  "messageReadClipboard": {
+    "message": "正在读取剪贴板数据..."
+  },
+  "messageRefreshFailed": {
+    "message": "刷新失败: {message}"
+  },
+  "messageRefreshSuccess": {
+    "message": "数据已刷新"
+  },
+  "messageReloadedData": {
+    "message": "已重新加载 {count} 条 {storageType} 数据"
+  },
+  "messageResetForm": {
+    "message": "已重置表单"
+  },
+  "messageResetOriginal": {
+    "message": "已重置到原始值"
+  },
+  "messageSaveAdded": {
+    "message": "添加成功"
+  },
+  "messageSaveEdited": {
+    "message": "修改成功"
+  },
+  "messageSaveFailed": {
+    "message": "保存失败: {message}"
+  },
+  "messageSaveFailedInvalidJson": {
+    "message": "保存失败：数据不是有效的 JSON 格式"
+  },
+  "messageSaveFailedInvalidData": {
+    "message": "保存失败：数据格式错误 - {message}"
+  },
+  "messageSavedAsString": {
+    "message": "已将输入作为字符串值保存"
+  },
+  "messageStorageEmpty": {
+    "message": "当前 {storageType} 为空"
+  },
+  "messageValueSavedAsStringFailed": {
+    "message": "JSON 格式错误，请参考编辑器右下角的错误提示"
+  },
+  "validationCookieNameEmpty": {
+    "message": "存在空的 Cookie 名称"
+  },
+  "validationEmptyKey": {
+    "message": "存在空的键名"
+  },
+  "validationKeyValueNotSerializable": {
+    "message": "键 \"{key}\" 的值无法序列化为 JSON: {message}"
+  },
+  "validationSaveFailed": {
+    "message": "数据验证失败：{message}"
   }
 }

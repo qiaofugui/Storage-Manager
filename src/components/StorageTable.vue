@@ -7,6 +7,7 @@
 import { h, computed, ref, watch } from 'vue'
 import { PAGINATION_CONFIG, TOOLTIP_CONFIG } from '../constants/index.js'
 import { useIcons } from '../composables/useIcons.js'
+import { useI18n } from '../i18n/index.js'
 
 const props = defineProps({
   data: {
@@ -20,6 +21,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['copy', 'delete', 'edit'])
+const { t } = useI18n()
 
 // 使用统一的图标系统
 const { CopyIcon, EditIcon, DeleteIcon } = useIcons()
@@ -55,22 +57,22 @@ const paginationConfig = computed(() => {
       currentPage.value = 1 // 重置到第一页
     },
     prefix: ({ itemCount }) => {
-      return `共 ${itemCount} 条`
+      return t('tablePageTotal', { count: itemCount })
     }
   }
 })
 
 const columns = computed(() => [
   {
-    title: '序号',
+    title: t('tableIndex'),
     key: 'index',
-    width: 60,
+    width: 50,
     render: (row, index) => {
       return (currentPage.value - 1) * pageSize.value + index + 1
     }
   },
   {
-    title: '键',
+    title: t('tableKey'),
     key: 'key',
     width: 200,
     ellipsis: {
@@ -79,7 +81,7 @@ const columns = computed(() => [
     render: (row) => row.name || row.key
   },
   {
-    title: '值',
+    title: t('tableValue'),
     key: 'value',
     ellipsis: {
       tooltip: true
@@ -94,9 +96,9 @@ const columns = computed(() => [
     }
   },
   {
-    title: '操作',
+    title: t('tableActions'),
     key: 'actions',
-    width: 150,
+    width: 140,
     render: (row) => {
       return h('div', { class: 'flex gap-2' }, [
         h(NTooltip, {
@@ -111,7 +113,7 @@ const columns = computed(() => [
           }, {
             icon: () => h(NIcon, null, { default: () => h(EditIcon) })
           }),
-          default: () => '编辑数据项'
+          default: () => t('tooltipEditItem')
         }),
         h(NTooltip, {
           trigger: 'hover',
@@ -125,12 +127,12 @@ const columns = computed(() => [
           }, {
             icon: () => h(NIcon, null, { default: () => h(CopyIcon) })
           }),
-          default: () => '复制数据项'
+          default: () => t('tooltipCopyItem')
         }),
         h(NPopconfirm, {
           onPositiveClick: () => emit('delete', row),
-          positiveText: '删除',
-          negativeText: '取消'
+          positiveText: t('buttonDelete'),
+          negativeText: t('buttonCancel')
         }, {
           trigger: () => h(NTooltip, {
             trigger: 'hover',
@@ -143,9 +145,9 @@ const columns = computed(() => [
             }, {
               icon: () => h(NIcon, null, { default: () => h(DeleteIcon) })
             }),
-            default: () => '删除数据项'
+            default: () => t('tooltipDeleteItem')
           }),
-          default: () => `确定要删除数据项 "${row.name || row.key}" 吗？`
+          default: () => t('confirmDeleteItem', { key: row.name || row.key })
         })
       ])
     }

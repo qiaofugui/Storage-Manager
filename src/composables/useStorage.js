@@ -3,11 +3,13 @@ import { useMessageManager } from './useMessageManager.js'
 import { StorageManager } from '../utils/storage.js'
 import { debounce } from '../utils/performance.js'
 import { DEBOUNCE_DELAYS, STORAGE_TYPE_LIST } from '../constants/index.js'
+import { useI18n } from '../i18n/index.js'
 
 const { getAll, setItem, removeItem, clear, setBatch, hasItem } = StorageManager
 
 export function useStorage () {
   const { message } = useMessageManager()
+  const { t } = useI18n()
 
   // 状态管理
   const activeTab = ref('localStorage')
@@ -83,14 +85,14 @@ export function useStorage () {
         await refreshCounts({ [requestedTab]: storageData })
       }
       if (showMessage) {
-        message.success('数据已刷新')
+        message.success(t('messageRefreshSuccess'))
       }
     } catch (error) {
       if (requestId !== refreshRequestId) {
         return
       }
       console.error('刷新数据失败:', error)
-      message.error(`刷新失败: ${error.message}`)
+      message.error(t('messageRefreshFailed', { message: error.message }))
     } finally {
       if (requestId === refreshRequestId) {
         loading.value = false
@@ -108,10 +110,10 @@ export function useStorage () {
       const itemToDelete = activeTab.value === 'cookie' ? item : itemKey
       await removeItem(activeTab.value, itemToDelete)
       await refreshData(false, true)
-      message.success('删除成功')
+      message.success(t('messageDeleteSuccess'))
     } catch (error) {
       console.error('删除失败:', error)
-      message.error(`删除失败: ${error.message}`)
+      message.error(t('messageDeleteFailed', { message: error.message }))
     }
   }
 
@@ -120,10 +122,10 @@ export function useStorage () {
     try {
       await clear(activeTab.value)
       await refreshData(false, true)
-      message.success('清除成功')
+      message.success(t('messageClearSuccess'))
     } catch (error) {
       console.error('清除失败:', error)
-      message.error(`清除失败: ${error.message}`)
+      message.error(t('messageClearFailed', { message: error.message }))
     }
   }
 
@@ -145,12 +147,12 @@ export function useStorage () {
 
       const failedResults = results.filter(item => !item.success)
       if (failedResults.length === 0) {
-        message.success('已清除当前页面全部数据')
+        message.success(t('messageAllPageDataCleared'))
         return
       }
 
-      const failedTypes = failedResults.map(item => item.type).join('、')
-      message.warning(`部分数据清除失败: ${failedTypes}`)
+      const failedTypes = failedResults.map(item => item.type).join(', ')
+      message.warning(t('messageClearPartialFailed', { types: failedTypes }))
       failedResults.forEach(item => {
         console.error(`清除 ${item.type} 失败:`, item.error)
       })
@@ -162,7 +164,7 @@ export function useStorage () {
   // 保存项目
   const saveItem = async (key, value, isEditing = false, options = {}) => {
     if (!key.trim()) {
-      message.error('请输入键名')
+      message.error(t('messageKeyRequired'))
       return false
     }
 
@@ -171,18 +173,18 @@ export function useStorage () {
       if (!isEditing) {
         const exists = await hasItem(activeTab.value, key)
         if (exists) {
-          message.error(`键名 "${key}" 已存在，请使用编辑功能修改现有数据项或更换键名`)
+          message.error(t('messageKeyExists', { key }))
           return false
         }
       }
 
       await setItem(activeTab.value, key, value, options)
       await refreshData(false, true)
-      message.success(isEditing ? '修改成功' : '添加成功')
+      message.success(isEditing ? t('messageSaveEdited') : t('messageSaveAdded'))
       return true
     } catch (error) {
       console.error('保存失败:', error)
-      message.error(`保存失败: ${error.message}`)
+      message.error(t('messageSaveFailed', { message: error.message }))
       return false
     }
   }
@@ -194,16 +196,16 @@ export function useStorage () {
       await refreshData(false, true)
 
       if (result.rollbackPerformed) {
-        message.error('批量保存失败，已恢复原始数据')
+        message.error(t('messageBatchSaveFailedRollback'))
       } else if (result.success === result.total) {
-        message.success(`批量保存成功，共保存 ${result.success} 条数据`)
+        message.success(t('messageBatchSaveSuccess', { count: result.success }))
       } else {
-        message.warning(`部分保存成功，成功 ${result.success}/${result.total} 条`)
+        message.warning(t('messageBatchSavePartial', { success: result.success, total: result.total }))
       }
       return true
     } catch (error) {
       console.error('批量保存失败:', error)
-      message.error(`批量保存失败: ${error.message}`)
+      message.error(t('messageSaveFailed', { message: error.message }))
       return false
     }
   }
@@ -240,13 +242,13 @@ export function useStorage () {
       await navigator.clipboard.writeText(textToCopy)
 
       const successMessage = typeof item === 'string'
-        ? '已复制到剪贴板'
-        : `已复制数据项 "${activeTab.value === 'cookie' ? item.name : item.key}" 到剪贴板`
+        ? t('messageCopiedGeneric')
+        : t('messageCopiedItem', { key: activeTab.value === 'cookie' ? item.name : item.key })
 
       message.success(successMessage)
     } catch (error) {
       console.error('复制失败:', error)
-      message.error('复制失败')
+      message.error(t('messageCopyFailed'))
     }
   }
 

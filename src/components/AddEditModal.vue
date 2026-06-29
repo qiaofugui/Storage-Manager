@@ -4,13 +4,13 @@
       content-class="!pb-0" :bordered="false" size="medium" role="dialog" aria-modal="true">
       <template #header>
         <div class="flex min-w-0 items-center gap-3">
-          <span class="shrink-0 text-base font-medium">{{ editingItem ? '编辑数据项' : '新增数据项' }}</span>
+          <span class="shrink-0 text-base font-medium">{{ editingItem ? t('modalEditTitle') : t('modalAddTitle') }}</span>
           <div class="pl-4 flex items-center">
-            <div class="text-sm">键：</div>
+            <div class="text-sm">{{ t('fieldKey') }}</div>
             <n-input
               v-model:value="formData.key"
               class="min-w-0 flex-1"
-              placeholder="请输入键名"
+              :placeholder="t('placeholderKey')"
               size="small"
               :disabled="!!editingItem"
             />
@@ -29,12 +29,12 @@
               </template>
             </n-button>
           </template>
-          关闭
+          {{ t('buttonClose') }}
         </n-tooltip>
       </template>
 
       <n-form :model="formData" label-placement="top">
-        <n-form-item label="值" :show-label="false" path="value">
+        <n-form-item :label="t('fieldValue')" :show-label="false" path="value">
           <div class="w-full" :style="{ height: UI_CONFIG.EDITOR_HEIGHT, border: '1px solid #e0e0e6' }">
             <Suspense>
               <template #default>
@@ -54,12 +54,12 @@
       <template #footer>
         <n-space justify="space-between">
           <n-space>
-            <n-button @click="resetValue">重置</n-button>
-            <n-button @click="formatValue">格式化</n-button>
+            <n-button @click="resetValue">{{ t('buttonReset') }}</n-button>
+            <n-button @click="formatValue">{{ t('buttonFormat') }}</n-button>
           </n-space>
           <n-space>
-            <n-button @click="handleClose">取消</n-button>
-            <n-button type="primary" @click="handleSave" :disabled="saving">保存</n-button>
+            <n-button @click="handleClose">{{ t('buttonCancel') }}</n-button>
+            <n-button type="primary" @click="handleSave" :disabled="saving">{{ t('buttonSave') }}</n-button>
           </n-space>
         </n-space>
       </template>
@@ -74,6 +74,7 @@ import { useIcons } from '../composables/useIcons.js'
 import { tryJsonParse } from '../utils/performance.js'
 import { UI_CONFIG, TOOLTIP_CONFIG } from '../constants/index.js'
 import { JsonEditorVue3 } from './JsonEditorAsync.js'
+import { useI18n } from '../i18n/index.js'
 
 const props = defineProps({
   show: {
@@ -91,6 +92,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:show', 'save', 'close'])
+const { t } = useI18n()
 
 // 使用 composables
 const {
@@ -210,7 +212,7 @@ const resetValue = async () => {
 
     await nextTick()
     parsedValue.value = parseValue(originalValue.value)
-    message.success('已重置到原始值')
+    message.success(t('messageResetOriginal'))
   } else {
     // 新增模式：重置键名和值为空
     props.formData.key = ''
@@ -219,7 +221,7 @@ const resetValue = async () => {
     await nextTick()
     parsedValue.value = ''  // 设置为空字符串
     currentRawText.value = ''  // 清空原始文本
-    message.success('已重置表单')
+    message.success(t('messageResetForm'))
   }
 
   // 强制重新渲染编辑器组件
@@ -239,7 +241,7 @@ const handleClose = () => {
 const handleSave = async () => {
   // 验证必填字段
   if (!props.formData.key || props.formData.key.trim() === '') {
-    message.error('键名不能为空')
+    message.error(t('messageKeyRequired'))
     return
   }
 
@@ -266,10 +268,10 @@ const handleSave = async () => {
       if (quotedParsed.success) {
         // 这是一个有效的字符串，使用原始文本作为字符串值
         finalValue = rawText
-        message.success('已将输入作为字符串值保存')
+        message.success(t('messageSavedAsString'))
       } else {
         // 真正的格式错误，不能保存
-        message.error('JSON格式错误，请参考编辑器右下角的错误提示')
+        message.error(t('messageInvalidJsonEditor'))
         return
       }
     } else {
@@ -287,7 +289,7 @@ const handleSave = async () => {
     await emit('save')
     // 保存成功的消息由父组件的 useStorage 显示
   } catch (error) {
-    message.error('保存失败：' + error.message)
+    message.error(t('messageSaveFailed', { message: error.message }))
   } finally {
     saving.value = false
   }

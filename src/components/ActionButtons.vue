@@ -10,7 +10,7 @@
           </template>
         </n-button>
       </template>
-      新增数据项
+      {{ t('actionAdd') }}
     </n-tooltip>
 
     <n-tooltip trigger="hover" :delay="TOOLTIP_CONFIG.DELAY">
@@ -23,7 +23,7 @@
           </template>
         </n-button>
       </template>
-      批量编辑
+      {{ t('actionBatchEdit') }}
     </n-tooltip>
 
     <n-tooltip trigger="hover" :delay="TOOLTIP_CONFIG.DELAY">
@@ -36,7 +36,7 @@
           </template>
         </n-button>
       </template>
-      粘贴数据
+      {{ t('actionPaste') }}
     </n-tooltip>
 
     <n-tooltip trigger="hover" :delay="TOOLTIP_CONFIG.DELAY">
@@ -49,7 +49,7 @@
           </template>
         </n-button>
       </template>
-      刷新数据
+      {{ t('actionRefresh') }}
     </n-tooltip>
 
     <n-dropdown trigger="click" :options="dropdownOptions">
@@ -67,9 +67,11 @@
 <script setup>
 import { h } from 'vue'
 import { useIcons } from '../composables/useIcons.js'
-import { TOOLTIP_CONFIG } from '../constants/index.js'
+import { APP_LINKS, TOOLTIP_CONFIG } from '../constants/index.js'
+import { useI18n } from '../i18n/index.js'
 
 const emit = defineEmits(['add', 'edit-all', 'paste', 'clear', 'clear-current-page', 'refresh'])
+const { t } = useI18n()
 
 // 使用统一的图标系统
 const {
@@ -78,29 +80,41 @@ const {
   ClipboardIcon,
   RefreshIcon,
   TrashIcon,
-  MoreIcon
+  MoreIcon,
+  GitHubIcon
 } = useIcons()
 
 const clearActions = [
   {
-    label: '清除当前类型数据',
+    label: () => t('actionClearCurrentType'),
     eventName: 'clear',
-    positiveText: '清除',
-    confirmText: '确定要清除当前类型的所有数据吗？此操作不可撤销。'
+    positiveText: () => t('buttonClear'),
+    confirmText: () => t('confirmClearCurrentType')
   },
   {
-    label: '清除页面全部数据',
+    label: () => t('actionClearPage'),
     eventName: 'clear-current-page',
-    positiveText: '全部清除',
-    confirmText: '确定要清除页面的 localStorage、sessionStorage 和 Cookie 吗？此操作不可撤销。'
+    positiveText: () => t('buttonClearAll'),
+    confirmText: () => t('confirmClearPage')
   }
 ]
 
-const dropdownOptions = clearActions.map(action => ({
-  type: 'render',
-  key: action.eventName,
-  render: () => renderClearAction(action)
-}))
+const dropdownOptions = [
+  ...clearActions.map(action => ({
+    type: 'render',
+    key: action.eventName,
+    render: () => renderClearAction(action)
+  })),
+  {
+    type: 'divider',
+    key: 'about-divider'
+  },
+  {
+    type: 'render',
+    key: 'about-github',
+    render: () => renderGitHubAction()
+  }
+]
 
 const handleClearConfirm = (eventName) => {
   emit(eventName)
@@ -108,8 +122,8 @@ const handleClearConfirm = (eventName) => {
 
 const renderClearAction = (action) => {
   return h(NPopconfirm, {
-    positiveText: action.positiveText,
-    negativeText: '取消',
+    positiveText: action.positiveText(),
+    negativeText: t('buttonCancel'),
     width: 380,
     onPositiveClick: () => handleClearConfirm(action.eventName)
   }, {
@@ -122,9 +136,26 @@ const renderClearAction = (action) => {
       h('span', {
         class: 'mr-2 inline-flex'
       }, [h(TrashIcon)]),
-      action.label
+      action.label()
     ]),
-    default: () => action.confirmText
+    default: () => action.confirmText()
   })
+}
+
+const renderGitHubAction = () => {
+  return h('button', {
+    type: 'button',
+    class: 'flex h-[34px] w-full cursor-pointer items-center border-0 bg-transparent px-3 text-left text-sm text-[#333639] hover:bg-[#f3f3f5]',
+    onClick: (event) => {
+      event.stopPropagation()
+      globalThis.open(APP_LINKS.GITHUB, '_blank', 'noopener,noreferrer')
+    },
+    onMousedown: (event) => event.stopPropagation()
+  }, [
+    h('span', {
+      class: 'mr-2 inline-flex'
+    }, [h(GitHubIcon)]),
+    t('actionAboutGitHub')
+  ])
 }
 </script>

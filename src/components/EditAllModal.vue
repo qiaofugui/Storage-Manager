@@ -4,7 +4,7 @@
       :bordered="false" size="medium" role="dialog" aria-modal="true">
       <template #header>
         <div class="flex min-w-0 items-center gap-3">
-          <span class="shrink-0 text-base font-medium">{{ `批量编辑 ${storageType}` }}</span>
+          <span class="shrink-0 text-base font-medium">{{ t('modalBatchEditTitle', { storageType }) }}</span>
           <div class="pl-4 flex items-center">
             <n-alert type="info" show-icon>
               <template #icon>
@@ -12,7 +12,7 @@
                   <InfoIcon />
                 </n-icon>
               </template>
-              请编辑{{ storageType }}数据。保存后将覆盖当前所有{{ storageType }}数据。
+              {{ t('modalBatchEditHelp', { storageType }) }}
             </n-alert>
           </div>
         </div>
@@ -29,7 +29,7 @@
               </template>
             </n-button>
           </template>
-          关闭
+          {{ t('buttonClose') }}
         </n-tooltip>
       </template>
 
@@ -59,17 +59,17 @@
                   </template>
                 </n-button>
               </template>
-              重新加载当前数据
+              {{ t('tooltipReloadCurrentData') }}
             </n-tooltip>
-            <n-button @click="formatJson">格式化</n-button>
+            <n-button @click="formatJson">{{ t('buttonFormat') }}</n-button>
           </n-space>
           <n-space>
-            <n-button @click="handleClose">取消</n-button>
-            <n-popconfirm @positive-click="handleSave" positive-text="保存" negative-text="取消">
+            <n-button @click="handleClose">{{ t('buttonCancel') }}</n-button>
+            <n-popconfirm @positive-click="handleSave" :positive-text="t('buttonSave')" :negative-text="t('buttonCancel')">
               <template #trigger>
-                <n-button type="primary" :disabled="saving">保存</n-button>
+                <n-button type="primary" :disabled="saving">{{ t('buttonSave') }}</n-button>
               </template>
-              确定要覆盖所有{{ storageType }}数据吗？此操作不可撤销。
+              {{ t('confirmOverwriteAll', { storageType }) }}
             </n-popconfirm>
           </n-space>
         </n-space>
@@ -85,6 +85,7 @@ import { useIcons } from '../composables/useIcons.js'
 import { deepClone } from '../utils/performance.js'
 import { UI_CONFIG, TOOLTIP_CONFIG } from '../constants/index.js'
 import { JsonEditorVue3 } from './JsonEditorAsync.js'
+import { useI18n } from '../i18n/index.js'
 
 const props = defineProps({
   show: {
@@ -102,6 +103,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:show', 'save', 'close'])
+const { t } = useI18n()
 
 // 使用 composables
 const {
@@ -181,17 +183,17 @@ const loadCurrentData = async (showMessage = false) => {
       jsonData.value = deepClone(dataObj)
 
       if (showMessage) {
-        message.success(`已重新加载 ${props.data.length} 条${props.storageType}数据`)
+        message.success(t('messageReloadedData', { count: props.data.length, storageType: props.storageType }))
       }
     } else {
       jsonData.value = {}
       if (showMessage) {
-        message.info(`当前${props.storageType}为空`)
+        message.info(t('messageStorageEmpty', { storageType: props.storageType }))
       }
     }
   } catch (error) {
     console.error('加载数据失败:', error)
-    message.error(`加载数据失败: ${error.message}`)
+    message.error(t('messageLoadDataFailed', { message: error.message }))
   } finally {
     if (showMessage) {
       reloading.value = false
@@ -220,7 +222,7 @@ const handleClose = () => {
 const handleSave = async () => {
   // 检查编辑器是否有验证错误（编辑器右下角的错误提示）
   if (hasValidationError.value) {
-    message.error('JSON格式错误，请参考编辑器右下角的错误提示')
+    message.error(t('messageInvalidJsonEditor'))
     return
   }
 
@@ -233,7 +235,7 @@ const handleSave = async () => {
   try {
     // 验证数据是否为有效对象
     if (typeof jsonData.value !== 'object' || !jsonData.value) {
-      message.error('数据格式不正确，请检查后重试')
+      message.error(t('messageInvalidDataFormat'))
       return
     }
 
@@ -246,7 +248,7 @@ const handleSave = async () => {
     // 验证每个键值对
     const validationErrors = validateAllKeyValuePairs(result.data)
     if (validationErrors.length > 0) {
-      message.error('数据验证失败：' + validationErrors.join('; '))
+      message.error(t('validationSaveFailed', { message: validationErrors.join('; ') }))
       return
     }
 
@@ -254,7 +256,7 @@ const handleSave = async () => {
     // 保存成功的消息由父组件的 useStorage 显示
   } catch (error) {
     console.error('保存失败:', error)
-    message.error('保存失败：数据格式错误 - ' + error.message)
+    message.error(t('messageSaveFailedInvalidData', { message: error.message }))
   } finally {
     saving.value = false
   }
@@ -267,14 +269,14 @@ const validateAllKeyValuePairs = (data) => {
   Object.entries(data).forEach(([key, value]) => {
     // 检查键名
     if (!key || key.trim() === '') {
-      validationErrors.push('存在空的键名')
+      validationErrors.push(t('validationEmptyKey'))
       return
     }
 
     if (props.storageType === 'cookie') {
       const cookieName = value && typeof value === 'object' && value.name ? value.name : key
       if (!cookieName || String(cookieName).trim() === '') {
-        validationErrors.push('存在空的 Cookie 名称')
+        validationErrors.push(t('validationCookieNameEmpty'))
         return
       }
     }
@@ -285,7 +287,7 @@ const validateAllKeyValuePairs = (data) => {
       // 尝试重新解析以确保数据完整性
       JSON.parse(serializedValue)
     } catch (error) {
-      validationErrors.push(`键 "${key}" 的值无法序列化为JSON: ${error.message}`)
+      validationErrors.push(t('validationKeyValueNotSerializable', { key, message: error.message }))
     }
   })
 

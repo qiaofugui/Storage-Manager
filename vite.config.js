@@ -69,6 +69,11 @@ export default defineConfig({
     sourcemap: false,
     minify: 'esbuild'
   },
+  resolve: {
+    alias: {
+      'vue-i18n': 'vue-i18n/dist/vue-i18n.runtime.esm-bundler.js'
+    }
+  },
   optimizeDeps: {
     include: ['json-editor-vue3', 'vue']
   }

@@ -2,9 +2,11 @@ import { ref } from 'vue'
 import { useMessageManager } from './useMessageManager.js'
 import { safeJsonStringify, tryJsonParse } from '../utils/performance.js'
 import { EDITOR_CONFIG } from '../constants/index.js'
+import { useI18n } from '../i18n/index.js'
 
 export function useJsonEditor () {
   const { message, silentMessage, forceMessage } = useMessageManager()
+  const { t } = useI18n()
   const hasValidationError = ref(false)
   const currentRawText = ref('')
 
@@ -20,7 +22,7 @@ export function useJsonEditor () {
     onError: (error) => {
       console.error('JSON Editor Error:', error)
       hasValidationError.value = true
-      message.error('JSON格式错误: ' + error.toString())
+      message.error(t('messageInvalidJsonData'))
     },
     onChange: () => {
       // 当JSON发生变化时的回调
@@ -121,7 +123,7 @@ export function useJsonEditor () {
 
     // 检查编辑器是否有验证错误
     if (hasValidationError.value) {
-      messageHandler.error('JSON格式错误，请检查输入内容')
+      messageHandler.error(t('messageInvalidJsonCheckInput'))
       return false
     }
 
@@ -138,7 +140,7 @@ export function useJsonEditor () {
       if (!rawValue || rawValue.trim() === '' || rawValue === '{}') {
         // 静默模式下不显示"数据为空"的成功消息
         if (!silent) {
-          messageHandler.success('数据为空，格式正确')
+          messageHandler.success(t('messageDataEmptyValid'))
         }
         return true
       }
@@ -148,7 +150,7 @@ export function useJsonEditor () {
         // 如果是简单的字符串值、数字或布尔值，直接认为是有效的
         if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
           if (!silent) {
-            messageHandler.success('数据格式正确')
+            messageHandler.success(t('messageDataFormatCorrect'))
           }
           return true
         }
@@ -158,7 +160,7 @@ export function useJsonEditor () {
           try {
             safeJsonStringify(value)
             if (!silent) {
-              messageHandler.success('JSON格式正确')
+              messageHandler.success(t('messageJsonFormatCorrect'))
             }
             return true
           } catch (error) {
@@ -169,7 +171,7 @@ export function useJsonEditor () {
         // 如果是null值，也认为是有效的
         if (value === null) {
           if (!silent) {
-            messageHandler.success('数据格式正确')
+            messageHandler.success(t('messageDataFormatCorrect'))
           }
           return true
         }
@@ -202,11 +204,11 @@ export function useJsonEditor () {
 
       // 静默模式下不显示"JSON格式正确"的成功消息
       if (!silent) {
-        messageHandler.success('JSON格式正确')
+        messageHandler.success(t('messageJsonFormatCorrect'))
       }
       return true
     } catch (error) {
-      messageHandler.error('JSON格式错误：请输入有效的JSON格式数据')
+      messageHandler.error(t('messageInvalidJsonData'))
       return false
     }
   }
@@ -221,11 +223,11 @@ export function useJsonEditor () {
           const temp = JSON.parse(safeJsonStringify(value))
           setValue(temp)
           if (showMessage) {
-            message.success('格式化成功')
+            message.success(t('messageFormatSuccess'))
           }
         } else {
           if (showMessage) {
-            message.error('没有可格式化的数据')
+            message.error(t('messageNoFormatData'))
           }
         }
       } else {
@@ -235,17 +237,17 @@ export function useJsonEditor () {
           const temp = JSON.parse(safeJsonStringify(value))
           setValue(temp)
           if (showMessage) {
-            message.success('JSON格式化成功')
+            message.success(t('messageJsonFormatSuccess'))
           }
         } else {
           if (showMessage) {
-            message.error('数据格式不正确，无法格式化')
+            message.error(t('messageJsonInvalidCannotFormat'))
           }
         }
       }
     } catch (error) {
       if (showMessage) {
-        message.error('JSON格式不正确，无法格式化')
+        message.error(t('messageFormatFailed'))
       }
     }
   }
@@ -262,7 +264,7 @@ export function useJsonEditor () {
       return { success: true, data: finalData }
     } catch (parseError) {
       // 这里使用强制消息，因为这是保存失败的关键错误
-      forceMessage.error('保存失败：数据不是有效的JSON格式')
+      forceMessage.error(t('messageSaveFailedInvalidJson'))
       return { success: false, data: null }
     }
   }
